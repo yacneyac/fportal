@@ -1,0 +1,75 @@
+﻿<nav class="navbar navbar-fixed-top">
+  <div class="container">
+    <div class="navbar well" style="height: 52px; padding-bottom: 0; padding-top: 0;">
+      <div class="navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li ng-class="{active: main.active.tab == 'profile'}">
+            <!--<a href="#/home/{{user.id}}" ng-click="main.active.tab = 'profile'" style="padding-bottom: 5px; padding-top: 5px; margin-top: 5px;">-->
+            <a href="" ng-click="main.active.tab = 'profile'" style="padding-bottom: 5px; padding-top: 5px; margin-top: 5px;">
+             <img data-ng-src="{{ user.avatarurl }}" style="width: 25px;"> {{user.info.first_name}}
+            </a>
+          </li>
+          <li><a href="#logout" style="padding-bottom: 10px;padding-top: 5px;margin-top: 6px;">
+            <i class="glyphicon glyphicon-off"></i> Logout</a></li>
+        </ul>
+      </div>
+    </div><!-- /.nav-collapse -->
+  </div><!-- /.container -->
+</nav><!-- /.navbar -->
+
+<div class="tabbable tabs-left">
+
+    <!--<ul class="nav nav-list col-xs-6 col-sm-3 well">-->
+      <!--<li ng-repeat="menu in menus" ng-class="{active: main.active.tab == '{{menu.type}}'}">-->
+        <!--<a ng-click="main.active.tab = '{{menu.type}}'" href="" >{{menu.name}}</a>-->
+      <!--</li>-->
+    <!--</ul>-->
+
+    <ul class="nav col-xs-6 col-sm-3 well">
+      <li ng-repeat="menu in menus">
+        <a ng-click="setActiveMenu(menu.src)" style="padding: 5px" href="">{{menu.name}}</a>
+      </li>
+      <li class="nav-divider"></li>
+      <li>
+        <a ng-click="setActiveMenu('/static/app-content/settings.view.html')" href="" style="padding: 5px">Settings</a>
+      </li>
+    </ul>
+
+
+  <!--<ul class="nav nav-list col-xs-6 col-sm-3 well" style="width: 220px; margin-right: 7px;">-->
+    <!--<li ng-class="{active: main.active.tab == 'profile'}">-->
+      <!--<a ng-click="main.active.tab = 'profile'" href=""> Profile </a>-->
+    <!--</li>-->
+    <!--<li ng-class="{active: main.active.tab == 'file'}">-->
+      <!--<a ng-click="main.active.tab = 'file'" href=""> File </a>-->
+    <!--</li>-->
+    <!--<li ng-class="{active: main.active.tab == 'calendar'}">-->
+      <!--<a ng-click="main.active.tab = 'calendar'" href=""> Calendar </a>-->
+    <!--</li>-->
+    <!--<li ng-class="{active: main.active.tab == 'friends'}">-->
+      <!--<a ng-click="main.active.tab = 'friends'" href=""> Friends </a>-->
+    <!--</li>-->
+  <!--</ul>-->
+
+  <div class="tab-content col-xs-12 col-sm-9 well">
+    <div ng-include="activeMenu"></div>
+
+    <!--<div ng-switch ="main.active.tab">-->
+      <!--<div ng-switch-when='profile'>-->
+        <!--<div ng-include="'/static/app-content/settings.view.html'"></div>-->
+      <!--</div>-->
+      <!--<div ng-switch-when='file'>-->
+        <!--<div ng-include="'/static/app-content/documents.view.html'"></div>-->
+      <!--</div>-->
+      <!--<div ng-switch-when='calendar'>-->
+        <!--&lt;!&ndash;<div ng-include="'/static/app-content/documents.view.html'"></div>&ndash;&gt;-->
+      <!--</div>-->
+      <!--<div ng-switch-when='friends'>-->
+        <!--&lt;!&ndash;<div ng-include="'/static/app-content/documents.view.html'"></div>&ndash;&gt;-->
+      <!--</div>-->
+      <!--<div ng-switch-default>-->
+        <!--<div ng-include="'/static/app-content/settings.view.html'"></div>-->
+      <!--</div>-->
+    <!--</div>-->
+  </div>
+</div>

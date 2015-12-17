@@ -1,0 +1,99 @@
+﻿<style>
+  img {
+    width: 100px;
+  }
+
+  /*uib-tab {*/
+    /*font-size: small;*/
+    /*padding: 5px;*/
+  /*}*/
+
+  .dropdown-menu>li>a:focus {
+     background-color: inherit;
+  }
+    .dropdown-menu>li>a:hover {
+     background-color: #ddd;
+  }
+</style>
+
+<div ng-controller="FriendsController as vm">
+  <uib-tabset class="tabs-left">
+    <uib-tab heading="All Friends">
+
+
+  <div class="col-md-9">
+    <table st-table="vm.displayedCollection" st-safe-src="friendsCollection" class="table table-striped">
+      <thead>
+        <tr>
+          <th colspan="5" style="padding: 0">
+            <input style="margin-bottom: 10px;" st-search="" class="form-control" placeholder="search ..." type="text"/>
+            <span>You have {{friendsCollection.length}} friends</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody style=" background-color: #f9f9f9;">
+        <tr ng-repeat="friend in vm.displayedCollection">
+          <td>
+             <img data-ng-src="{{ friend.avatarurl }}">
+          </td>
+          <td style="width: 190px">
+            <a href="">{{friend.name}}</a>
+            <p ng-show="friend.online" style="color: green; font-size: smaller; margin-bottom: 0;">online</p>
+            <p>
+              <span ng-repeat="sgroup in friend.groups">
+                <a href="" style="text-decoration: none">
+                  <span ng-if="sgroup.assigned" class="label label-info">{{sgroup.name}}</span>
+                </a>
+              </span>
+            </p>
+          </td>
+          <td>
+            <ul class="nav">
+              <li ng-repeat="action in vm.actions">
+                <a ng-click="" style="padding: 5px; font-size: small" href="">{{action}}</a>
+              </li>
+
+              <li uib-dropdown auto-close="outsideClick" click-off="open=false" ng-click="open=true;">
+                <a id="split-button" style="padding: 5px; font-size: small"
+                   uib-dropdown-toggle href="">Add to another list...</a>
+                <ul class="nav uib-dropdown-menu" role="menu" aria-labelledby="split-button"
+                      style="background-color: #f9f9f9;">
+                  <li ng-if="open" ng-repeat="agroup in friend.groups">
+                    <a data-ng-click='agroup.assigned=!agroup.assigned; vm.setGroup(agroup, friend.id)'
+                       role="menuitem" style="padding: 5px; font-size: small" href="">
+
+                      <i class="glyphicon glyphicon-ok" ng-style="!agroup.assigned && {'color': '#f9f9f9'}"></i>
+                      {{agroup.name}}</a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="col-md-3">
+
+      <button class="btn btn-sm btn-primary">
+        <!--<i class="glyphicon glyphicon-plus"></i>-->
+        Find Friends
+      </button>
+
+      <!--filters-->
+
+    </div>
+
+      </uib-tab>
+
+    <uib-tab heading="Online">
+      online
+    </uib-tab>
+
+    <uib-tab heading="Requests">
+      Requests
+    </uib-tab>
+
+    </uib-tabset>
+</div>

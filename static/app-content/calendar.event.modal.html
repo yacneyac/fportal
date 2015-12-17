@@ -1,0 +1,80 @@
+  <script type="text/ng-template" id="modalEventContent.html">
+
+    <div class="modal-content" style="width: 400px">
+
+    <div class="modal-header">
+      <h3 class="modal-title">{{vm.action}} event</h3>
+    </div>
+
+    <div class="modal-body" ng-style="!hideEnd && {'height': '200px'} || hideEnd && {'height': '165px'}">
+      <form name="eventForm" novalidate class="col-md-8" style="margin-left: 5px;">
+
+        <div class="input-group input-group-sm">
+          <span class="input-group-addon" id="basic-addon1" style="padding-left: 33px;">Name:</span>
+          <input type="text" name="title" class="form-control" aria-describedby="basic-addon1"
+                 uib-tooltip="Event name is required." tooltip-class="errorClass"
+                 tooltip-enable="eventForm.title.$dirty && eventForm.title.$invalid" autofocus
+                 ng-model="actionEvent.title" required style="width: 249px; margin-right: 5px; border-radius: 2px"
+                 ng-style="eventForm.title.$dirty && eventForm.title.$invalid && {'border-color': 'red'}">
+        </div>
+
+        <div class="input-group input-group-sm">
+          <span class="input-group-addon" id="basic-addon3" style="padding-left: 38px;">Type:</span>
+          <select name="type" class="form-control" aria-describedby="basic-addon3"
+                  ng-model="actionEvent.type" required ng-options="t for t in types"
+                  style="width: 142px; border-radius: 2px"></select>
+        </div>
+
+        <div class="input-group input-group-sm" style="width: 340px;">
+          <span class="input-group-addon" id="basic-addon5">Date/Time:</span>
+          <input type="text" class="form-control" name="start" aria-describedby="basic-addon5"
+                 datetime-picker="dd-MM-yyyy HH:mm" ng-model="actionEvent.startsAt" is-open="startStatus.opened"
+                 datepicker-options="dateOptions" timepicker-options="timeOptions" min-date="startDate"
+                 required ng-change="onChangeStartDate()" uib-tooltip="{{endStartMsg}}"
+                 tooltip-class="errorClass" tooltip-enable="isStartError" ng-style="isStartError && {'border-color': 'red'}"
+                 style="font-size: 14px; width: 142px; border-radius: 2px"/>
+          <span class="form-control btn btn-default" aria-describedby="basic-addon5"
+                style="border-radius: 2px; margin-right: 15px; width: 32px; padding: 5px"
+                ng-click="dateOpen($event, 'start')"><i class="glyphicon glyphicon-calendar"></i></span>
+          <div aria-describedby="basic-addon5" style="font-size: smaller; margin-top: 7px">
+            <a href="" ng-hide="hideStart" ng-click="showDateTime('setEnd'); eventForm.$setDirty()">+ End Time</a>
+          </div>
+        </div>
+
+        <div class="input-group input-group-sm" ng-hide="hideEnd" style="width: 340px;">
+          <span class="input-group-addon" id="basic-addon2">Date/Time:</span>
+          <input type="text" class="form-control" aria-describedby="basic-addon2" name="end"
+                 datetime-picker="dd-MM-yyyy HH:mm" ng-model="actionEvent.endsAt" is-open="endStatus.opened"
+                 datepicker-options="dateOptions" timepicker-options="timeOptions" min-date="actionEvent.startsAt"
+                 ng-change="onChangeEndDate()" uib-tooltip="{{endErrMsg}}" tooltip-enable="isEndError"
+                 tooltip-class="errorClass"
+                 style="font-size: 14px; width: 142px; border-radius: 2px" ng-style="isEndError && {'border-color': 'red'}"/>
+          <span class="form-control btn btn-default" aria-describedby="basic-addon2"
+                style="border-radius: 2px; margin-right: 30px; width: 32px; padding: 5px"
+                ng-click="dateOpen($event, 'end')"><i class="glyphicon glyphicon-calendar"></i></span>
+          <div aria-describedby="basic-addon2" style="font-size: smaller; margin-top: 7px">
+            <a href="" ng-click="showDateTime('setStart'); eventForm.$setDirty()">Remove</a>
+          </div>
+        </div>
+
+        <div class="input-group input-group-sm">
+          <span class="input-group-addon" id="basic-addon4" style="padding-left: 32px">Recur:</span>
+          <select class="form-control" ng-model="actionEvent.recursOn" ng-options="r for r in recurs"
+                  style="width: 142px; border-radius: 2px">
+            <option value=""></option>
+          </select>
+        </div>
+
+      </form>
+    </div>
+    <div class="modal-footer">
+      <span><a href="" style="font-size: smaller" ng-click="deleteEvent(actionEvent)">Delete event</a></span>
+      <div class="pull-right" style="margin-left: 170px">
+        <button class="btn btn-sm btn-primary" ng-click="$close()"
+                ng-disabled="!eventForm.$dirty || eventForm.$invalid">{{btnName}}</button>
+        <button class="btn btn-sm btn-default" ng-click="$dismiss()">Cancel</button>
+      </div>
+    </div>
+
+      </div>
+  </script>

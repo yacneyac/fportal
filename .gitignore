@@ -1,0 +1,8 @@
+*.pyc
+*.pyo
+*.swp
+*~
+.idea
+libs/config.py
+data/upload
+static/avatar

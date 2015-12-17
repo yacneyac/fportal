@@ -1,0 +1,60 @@
+﻿<style>
+.input-group-addon {
+    text-align: -webkit-right;
+}
+</style>
+<div class="col-md-6 col-md-offset-3 well">
+    <!--<h1>Registration</h1>-->
+  <form name="registerForm" ng-submit="vm.register()" role="form" novalidate>
+    <div class="input-group input-group-sm">
+      <span class="input-group-addon" id="basic-addon1">Username:</span>
+      <input type="text" name="login" class="form-control" aria-describedby="basic-addon1"
+           ng-model="vm.user.login" required autofocus>
+      <span style="color:red; font-size: 12px;" ng-show="registerForm.login.$dirty && registerForm.login.$invalid">
+        <span ng-show="registerForm.login.$error.required">Username is required.</span>
+      </span>
+    </div>
+
+    <div class="input-group input-group-sm">
+      <span class="input-group-addon" id="basic-addon2">First name:</span>
+      <input type="text" name="first_name" class="form-control" aria-describedby="basic-addon2" ng-model="vm.user.first_name" required>
+      <span style="color:red; font-size: 12px;" ng-show="registerForm.first_name.$dirty && registerForm.first_name.$invalid">
+        <span ng-show="registerForm.first_name.$error.required">Name is required.</span>
+      </span>
+    </div>
+
+    <!--<div class="input-group input-group-sm">-->
+      <!--<span class="input-group-addon" id="basic-addon3" style="padding-right: 37px;">Email:</span>-->
+      <!--<input type="email" name="email" class="form-control" aria-describedby="basic-addon3" ng-model="vm.user.email" required>-->
+      <!--<span style="color:red; font-size: 12px;" ng-show="registerForm.email.$dirty && registerForm.email.$invalid">-->
+        <!--<span ng-show="registerForm.email.$error.required">Email is required.</span>-->
+        <!--<span ng-show="registerForm.email.$error.email">Invalid email address.</span>-->
+      <!--</span>-->
+    <!--</div>-->
+
+    <div class="input-group input-group-sm">
+      <span class="input-group-addon" id="password" style="padding-right: 14px;">Password:</span>
+      <input type="password" name="password" class="form-control" aria-describedby="password" ng-model="vm.user.password" required>
+      <span style="color:red; font-size: 12px;" ng-show="registerForm.password.$dirty && registerForm.password.$invalid">
+        <span ng-show="registerForm.password.$error.required">Password is required.</span>
+      </span>
+    </div>
+
+    <div class="input-group input-group-sm">
+      <span class="input-group-addon" id="conf-new-pass" style="padding-right: 25px;">Confirm:</span>
+      <input ng-confirm-field type="password" name="confNewPass" class="form-control" confirm-against="vm.user.password"
+             aria-describedby="conf-new-pass" ng-model="vm.user.confpassword" required>
+      <span style="color:red; font-size: 12px;" ng-show="registerForm.confNewPass.$dirty && registerForm.confNewPass.$invalid">
+        <span ng-show="registerForm.confNewPass.$error.required && registerForm.confNewPass.$dirty">Please confirm your password.</span>
+        <span ng-show="registerForm.confNewPass.$error.noMatch">Passwords are not match.</span>
+      </span>
+    </div>
+
+    <div class="btn-group btn-group-sm pull-right">
+      <!--<img ng-if="vm.dataLoading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />-->
+      <img ng-if="vm.dataLoading" src="/static/img/loading.gif"/>
+      <button type="submit" ng-disabled="registerForm.$invalid || vm.dataLoading" class="btn btn-success">Register</button>
+      <a href="#/login" class="btn btn-warning">Cancel</a>
+    </div>
+  </form>
+</div>
