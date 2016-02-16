@@ -1,5 +1,5 @@
 # Friend Portal
-just for fun :)
+just for fun :) see demo http://fportal-yacneyac.rhcloud.com/
 
 - Python 2.6
 - Tornado 4
@@ -11,9 +11,10 @@ just for fun :)
 USER
 * auth by facebook, twitter or create local user
 * save own files (file quote on 5Mb :) )
-* sync calendar with FB or create own event
+* create own event (sync calendar with FB in testing)
+* add friends (testing part)
 
-Use user1(user1), user2(user2) and user3(user3) for test sharing file.  user1 friends with user2 and user3 :)
+Use user1(pass: user1) and user2(pass: user2) for test sharing file. user1 and user2 are friends :)
 
 TODO: add friends for chatting (WebSocket)
 
