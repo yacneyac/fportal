@@ -9,10 +9,11 @@ Date:
 import logging.handlers
 import tornado.log
 
-from libs.config import ACCESS_PATH, APP_PATH, GEN_PATH, LOG_LVL
+from libs.conf import ACCESS_PATH, APP_PATH, GEN_PATH, LOG_LVL
 
 
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s',
+                              datefmt='%d-%m-%Y %H:%M:%S')
 
 
 ac = tornado.log.access_log

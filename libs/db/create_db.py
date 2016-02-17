@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- encoding: UTF-8 -*-
-# pylint: disable=C0103,W0212,W0613
 """
 Propose: 
 Author: 'yac'
@@ -9,33 +8,33 @@ Date:
 import hashlib
 
 from libs.models import *
-#from mainApp import app
+from libs.conf import DB_USER, DB_PASS, DB_HOST, DB_NAME
 from sqlalchemy import create_engine
-from sqlalchemy.exc import OperationalError, ProgrammingError
-#from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy.exc import OperationalError
 
 
 ADMIN_LOGIN = 'admin'
 ADMIN_PASS = 'admin'
 
-def insert(engine, tname, value):
+
+def insert(engine, tname, value, field='value'):
     conn = engine.connect()
-    conn.execute('INSERT INTO %s (value) VALUES ("%s")' % (tname, value))
+    conn.execute('INSERT INTO %s (%s) VALUES ("%s")' % (tname, field, value))
     conn.close()
 
 if __name__ == '__main__':
+    uri = 'mysql://%s:%s@%s/%s' % (DB_USER, DB_PASS, DB_HOST, DB_NAME)
 
-#    engine = create_engine("mysql://root:yarcher@localhost/blik_db")
-#    engine = create_engine("mysql://admin27Dg2P6:U74f21Q62Ub8@127.2.79.2:3306/fportal")
-    engine = create_engine("mysql://root:yarcher@localhost/blik_db")
+    engine = create_engine(uri)
+
     try:
         engine.connect()
     except OperationalError:
-        engine = create_engine("mysql://root:yarcher@localhost")
+        engine = create_engine("mysql://%s:%s@%s" % (DB_USER, DB_PASS, DB_HOST))
         conn = engine.connect()
-        conn.execute("create database blik_db")
+        conn.execute("create database %s" % DB_NAME)
         conn.close()
-        engine = create_engine("mysql://root:yarcher@localhost/blik_db")
+        engine = create_engine(uri)
 
     for t in metadata.sorted_tables:
         print t.name
@@ -53,15 +52,23 @@ if __name__ == '__main__':
 
     print '--status friend dict has been created'
 
+
 #    # add dict file permission
     for perm in ('modify', 'read'):
         t_name = DictPermissionDB.__tablename__
         insert(engine, t_name, perm)
 
     print '--file permission dict has been created'
+
+#    # add dict group
+    for group in ('Family', 'Close Friends'):
+        t_name = FriendGroupDB.__tablename__
+        insert(engine, t_name, group, 'name')
+
+    print '--groups dict has been created'
 #
 #    # add dict notification
-    for note in ('file', 'friend', 'message'):
+    for note in ('share_doc', 'new_msg', 'new_friend', 'req_friend'):
         t_name = DictNotificationDB.__tablename__
         insert(engine, t_name, note)
     print '--notification dict has been created'
@@ -86,7 +93,7 @@ if __name__ == '__main__':
 
     print '--test user created'
 
-    for friend in ((5,2,1), (5,3,1), (5,4,1)):
+    for friend in ((2, 1, 1), (1, 2, 1), (2, 3, 1), (3, 2, 1)):
         t_name = FriendDB.__tablename__
         conn = engine.connect()
         conn.execute('INSERT INTO %s (user_id, friend_id, status) VALUES ("%s", "%s", "%s")' %
@@ -94,13 +101,5 @@ if __name__ == '__main__':
         conn.close()
 
     print '--friends has been created'
-
-
-    # for group in ((5, 'Group1'), (5, 'Group2'), 'Group3'):
-    #     t_name = FriendDB.__tablename__
-    #     conn = engine.connect()
-    #     conn.execute('INSERT INTO %s (user_id, name) VALUES ("%s", "%s")' %
-    #                  (t_name, group[0], group[1]))
-    #     conn.close()
 
 

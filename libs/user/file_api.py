@@ -13,7 +13,7 @@ from contextlib import closing
 from datetime import datetime
 
 from libs.models import FileDB, FileShareDB
-from libs.config import UPLOAD_FOLDER, ALLOWED_EXTENSIONS
+from libs.conf import UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 from libs.db.db_api import DataBaseAPI
 from libs.portal_exeption import PForbidden
 from libs.logger import ac as log
@@ -66,8 +66,8 @@ class ShareFile(object):
                 self.db.create(file_share)
 
                 # notification
-                msg = '%s has been shared file: %s' % (self.current_user.login, self.file_id)
-                note.send(self.current_user.id, user['id'], 1, msg)
+                msg = '%s has been shared file: %s' % (self.current_user.login, self.params['file_name'])
+                note.send(self.current_user.id, user['id'], note.SHARE_DOCUMENT, msg)
                 log.debug('Notification has been send. \n%s', msg)
 
         return {'success': True}
@@ -131,25 +131,25 @@ class FileAPI(object):
         """ Get file from DB by ID """
         self.file_db = self.db.get_obj('id="%s"' % file_id)
 
-    def to_zip(self):
-        """ Convert file(s) to zip on fly """
-        file_list = self.db.get_all('id in (%s)' % ','.join((self.params['fileId'])))
-
-        log.debug('Convert file(s) to .zip')
-
-        with SpooledTemporaryFile() as tempfile:
-            with closing(ZipFile(tempfile, 'w', ZIP_DEFLATED)) as archive:
-                for f in file_list:
-                    archive.write(f.path, arcname=f.name)
-
-            tempfile.seek(0)
-
-            while True:
-                _buffer = tempfile.read(4096)
-                if _buffer:
-                    yield _buffer
-                else:
-                    break
+    # def to_zip(self):
+    #     """ Convert file(s) to zip on fly """
+    #     file_list = self.db.get_all('id in (%s)' % ','.join((self.params['fileId'])))
+    #
+    #     log.debug('Convert file(s) to .zip')
+    #
+    #     with SpooledTemporaryFile() as tempfile:
+    #         with closing(ZipFile(tempfile, 'w', ZIP_DEFLATED)) as archive:
+    #             for f in file_list:
+    #                 archive.write(f.path, arcname=f.name)
+    #
+    #         tempfile.seek(0)
+    #
+    #         while True:
+    #             _buffer = tempfile.read(4096)
+    #             if _buffer:
+    #                 yield _buffer
+    #             else:
+    #                 break
 
     def upload(self):
         """ Save file in FileSystem and save in DB """
@@ -197,13 +197,13 @@ class FileAPI(object):
             self.db.create(file_db, commit=False)
             self.db.flush()
             self.db.update(file_db)
-            self.db.commit()
 
             log.debug('--> File has been updated in DB.')
 
             # update user
             self.user_api.user_db.used_file_quota += os.stat(file_path).st_size  # bytes
-            self.db.update(self.user_api.user_db)
+            self.user_api.db.update(self.user_api.user_db)
+
             log.debug('--> User in DB has been updated.')
 
             return {'success': True, 'id': file_db.id}
@@ -214,11 +214,21 @@ class FileAPI(object):
             log.exception('Cannot upload file')
             return SERVER_ERROR
 
+    def file_exist(self):
+        return os.path.isfile(os.path.join(self.get_upload_dir(), self.file_db.name))
+
+    def get_upload_dir(self):
+        if self.params.get('shared_by'):
+            return os.path.join(UPLOAD_FOLDER, self.params['shared_by'])
+        return os.path.join(UPLOAD_FOLDER, self.current_user.login)
+
     def read(self):
         """ Get file """
-        log.debug('Read file <%s>', self.file_db.path)
+        file_path = os.path.join(self.get_upload_dir(), self.file_db.name)
 
-        with open(self.file_db.path, "rb") as f:
+        log.debug('Read file <%s>', file_path)
+
+        with open(file_path, "rb") as f:
             while True:
                 _buffer = f.read(4096)
                 if _buffer:
@@ -228,28 +238,32 @@ class FileAPI(object):
                     break
 
     def _allowed_file(self):
-        return '.' in self.file_name and self.file_type in ALLOWED_EXTENSIONS
+        return '.' in self.file_name and self.file_name.split('.')[1] in ALLOWED_EXTENSIONS
 
     def search(self):
         """ Search file by user """
         try:
             log.debug('Search file for user ID: %s', self.current_user.id)
 
-            sql = "select fs.id, fs.name, fs.size, fs.date_load, u.id shared_by_id, "\
+            sql = "select fs.id, fs.name, fs.size, fs.type, fs.date_load, u.id shared_by_id, u.login shared_by_login, "\
                   "concat(u.first_name, ' ', COALESCE(u.second_name, '')) shared_by_name "\
                   "FROM file_store fs inner join file_share fsh on fsh.file_id = fs.id "\
                   "inner join user u on u.id = fsh.user_own_id where fsh.user_assigned_id ={0} "\
-                  "union all(select fs.id, fs.name, fs.size, fs.date_load, '' shared_by_id, '' shared_by_name "\
+                  "union all(select fs.id, fs.name, fs.size, fs.type, fs.date_load, '' shared_by_id, "\
+                  "'' shared_by_login, '' shared_by_name " \
                   "FROM file_store fs where fs.user_id ={0})".format(self.current_user.id)
 
             connection = self.db.engine.connect()
             result = connection.execute(sql)
             connection.close()
 
-            response = {'files': [dict(zip(result.keys(), row)) for row in result],
+            files = [dict(zip(result.keys(), row)) for row in result]
+
+            response = {'files': files,
                         'used_quota': self.user_api.user_db.used_file_quota,
                         'quota': self.user_api.user_db.file_quota,
-                        'total': result.rowcount}
+                        'total': result.rowcount,
+                        'extends': list(set(fl['type'] for fl in files))}
 
             return {'success': True, 'result': response}
 
@@ -289,7 +303,7 @@ class FileAPI(object):
 
         # update User
         self.user_api.user_db.used_file_quota -= self.file_db.size
-        self.db.update(self.user_api.user_db)
+        self.user_api.db.update(self.user_api.user_db)
 
         log.debug('--> User in DB has been updated.')
         return {'success': True}

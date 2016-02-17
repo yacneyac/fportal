@@ -21,6 +21,7 @@ class UserDB(Base):
     login = Column(String(50), nullable=False, unique=True)
     email = Column(String(50))
     active = Column(Boolean(), nullable=False, server_default='1')
+    online = Column(Boolean(), nullable=False, server_default='0')  # default - offline
     registered_at = Column(String(50))
     first_name = Column(String(50))
     middle_name = Column(String(50))
@@ -113,6 +114,7 @@ class FriendGroupDB(Base):
     id = Column(Integer(), primary_key=True)
 
     name = Column(String(20))
+    # creator_id = Column(Integer())
 
 
 class FriendAssignedGroupDB(Base):
@@ -145,7 +147,8 @@ class NotificationDB(Base):
 
     sender = Column(Integer(), ForeignKey('user.id'))
     receiver = Column(Integer(), ForeignKey('user.id'))
-    msg_type = Column(Integer(), ForeignKey('dict_notification.id'))
+    # msg_type = Column(Integer(), ForeignKey('dict_notification.id'))
+    msg_type = Column(String(10))
     message = Column(String(500))
     read = Column(Integer())  # 1,0
 

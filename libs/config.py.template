@@ -1,14 +1,12 @@
-#!/usr/bin/env python
-# -*- encoding: UTF-8 -*-
-
-
-SQLALCHEMY_DATABASE_URI = 'mysql://user:pass@localhost/db'
+DB_USER = ''
+DB_PASS = ''
+DB_HOST = 'host:port'
+DB_NAME = ''
 
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 Mb
 UPLOAD_FOLDER = './data/upload'
 UPLOAD_AVATAR = './static/avatar'
 ALLOWED_EXTENSIONS = ('txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'mp3', 'avi')
-
 
 TW_KEY = ''
 TW_SECRET = ''
@@ -18,4 +16,4 @@ FB_SECRET = ''
 ACCESS_PATH = '/tmp/tornado-access.log'
 APP_PATH = '/tmp/tornado-application.log'
 GEN_PATH = '/tmp/tornado-general.log'
-LOG_LVL = 'DEBUG'
+LOG_LVL = 'INFO'

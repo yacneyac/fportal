@@ -7,15 +7,20 @@ Author: 'yac'
 Date: 
 """
 
+import time
 import json
 import tornado.web
-from tornado.web import HTTPError, RequestHandler
+from tornado import websocket, gen
+from tornado.web import HTTPError,  RequestHandler, asynchronous
 from tornado.escape import json_encode
+from tornado.ioloop import IOLoop
+
 
 from user_api import User, UserAPI
 from calendar_api import CalendarAPI
 from file_api import FileAPI, ShareFile
 from friend_api import FriendAPI
+from notification_api import queue
 from libs.logger import ac as log
 
 
@@ -75,7 +80,7 @@ class UserHandler(BaseHandler):
                     'first_name': user_api.user_db.first_name,
                     'middle_name': user_api.user_db.middle_name,
                     'second_name': user_api.user_db.second_name,
-                    'birthday': user_api.user_db.birthday,
+                    'birthday': int(user_api.user_db.birthday) if user_api.user_db.birthday else '',
                     'email': user_api.user_db.email
                   },
                   'permission': {'v_file': user_api.user_db.v_file,
@@ -196,35 +201,40 @@ class FileHandler(BaseHandler):
     def get(self, **kwargs):
 
         # file to zip
-        if self.args['action'] == 'zf':
-
-            file_api = FileAPI(self.current_user)
-            file_api.params = self.args
-
-            self.set_header('Content-Type', 'application/octet-stream')
-            self.set_header('Content-Disposition', 'attachment; filename=files.zip')
-
-            for chunk in file_api.to_zip():
-                if chunk:
-                    self.write(chunk)
-
-            self.finish()
-            return
+        # if self.args['action'] == 'zf':
+        #
+        #     file_api = FileAPI(self.current_user)
+        #     file_api.params = self.args
+        #
+        #     self.set_header('Content-Type', 'application/octet-stream')
+        #     self.set_header('Content-Disposition', 'attachment; filename=files.zip')
+        #
+        #     for chunk in file_api.to_zip():
+        #         if chunk:
+        #             self.write(chunk)
+        #
+        #     self.finish()
+        #     return
 
         # download
         if self.args['action'] == 'df':
 
             file_api = FileAPI(self.current_user)
             file_api.set_file(kwargs['file_id'])
+            file_api.params = self.args
+
+            if not file_api.file_exist():
+                return self.write(json_encode({'success': False, 'errorMessage': 'File not exist'}))
 
             self.set_header('Content-Type', 'application/octet-stream')
             self.set_header('Content-Disposition', 'attachment; filename=' + file_api.file_db.name)
 
-            for chunk in file_api.read():
-                if chunk:
-                    self.write(chunk)
+            [self.write(chunk) for chunk in file_api.read() if chunk]
 
-            self.finish()
+            # for chunk in file_api.read():
+            #     if chunk:
+            #         self.write(chunk)
+            # self.finish()
             return
 
         # search
@@ -266,6 +276,12 @@ class FriendHandler(BaseHandler):
     @json_out
     def get(self, **kwargs):
         friend_api = FriendAPI(self.current_user)
+
+        if self.args.get('action') == 'l':
+            return friend_api.get_likely_friends()
+        if self.args.get('action') == 'r':
+            return friend_api.get_request()
+
         return friend_api.get()
 
     @tornado.web.authenticated
@@ -273,10 +289,59 @@ class FriendHandler(BaseHandler):
     def post(self, **kwargs):
         friend_api = FriendAPI(self.current_user)
         friend_api.params = self.args
+
+        if kwargs['friend_id']:
+            if self.args.get('action') == 'add':
+                print 'ADD', kwargs, self.args
+                return {'success': True}
+
+            elif self.args.get('action') == 'del':
+                print 'UNFRIEND', kwargs, self.args
+                return friend_api.set_friend()
+
+            elif self.args.get('action') == 'reject':
+                print 'REJECT', kwargs, self.args
+                return {'success': True}
+
         return friend_api.set_group()
 
 
+# todo make reconnect in backend and frontend if error
+class WebSocketHandler(websocket.WebSocketHandler, BaseHandler):
+
+    @asynchronous
+    @gen.engine
+    def on_message(self, message):
+        client = json.loads(message)
+
+        while True:
+            for _ in xrange(queue.qsize()):
+                queue_obj = queue.get()
+                if int(queue_obj['user_id']) == int(client['id']):
+                    print 'send', queue_obj
+                    try:
+                        self.write_message(json.dumps(queue_obj))
+                    except websocket.WebSocketClosedError:
+                        print 'Get errorr'
+                        queue.put(queue_obj)
+                else:
+                    queue.put(queue_obj)
+
+            yield gen.Task(IOLoop.instance().add_timeout, time.time() + 2)
+
+   # def on_close(self):
+   #     if self.id in clients:
+   #         del clients[self.id]
+
+    def check_origin(self, origin):
+        return True
+
+    #def open(self):
+    #    self.write_message("ws-echo: 418 I'm a teapot (as per RFC 2324)")
+
+
 user_handlers = [(r"/", LoginHandler),
+                 (r"/ws", WebSocketHandler),
                  (r"/logout", LogoutHandler),
                  (r"/register", RegisterHandler),
                  (r"/user/(?P<login>[^\/]+)/calendar/?(?P<event_id>[0-9]+)?", CalendarHandler),

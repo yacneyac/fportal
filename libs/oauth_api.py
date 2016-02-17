@@ -11,7 +11,7 @@ from tornado import web, auth, gen, escape
 
 from user.social_user_api import SocialUser
 from user.user_api import User
-from libs.config import TW_KEY, TW_SECRET, FB_KEY, FB_SECRET
+from libs.conf import TW_KEY, TW_SECRET, FB_KEY, FB_SECRET
 from user.app_user import BaseHandler
 
 from logger import ac as log

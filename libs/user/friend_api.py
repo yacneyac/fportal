@@ -18,10 +18,33 @@ class FriendAPI(object):
         self.friend_db = DataBaseAPI(FriendDB)
         self.params = {}
 
+    def get_likely_friends(self):
+        sql = "select u.id, concat(u.first_name, ' ', u.second_name) name, u.avatar from user u "\
+              "where u.id not in " \
+              "(select friend_id from friend where user_id={0}) and u.id!={0}".format(self.user_id)
+        connection = self.friend_db.engine.connect()
+        friends_db = connection.execute(sql)
+        connection.close()
+
+        return {'success': True, 'l_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
+
+    def get_request(self):
+        sql = "select f.id relation_id, (select id from friend where status=2 and user_id=u.id) initial_id, "\
+              "f.friend_id id, concat(u.first_name, ' ', u.second_name) name, u.avatar "\
+              "from friend f inner join user u on u.id = f.friend_id "\
+              "where f.user_id =%s and f.status=2" % self.user_id
+
+        connection = self.friend_db.engine.connect()
+        friends_db = connection.execute(sql)
+        connection.close()
+
+        return {'success': True, 'r_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
+
     def get(self):
-        sql = "SELECT f.friend_id id, concat(u.first_name, ' ', u.second_name) name, u.avatar "\
-                              "FROM friend f inner join user u on u.id = f.friend_id "\
-                              "where f.user_id=%s" % self.user_id
+        sql = "SELECT f.friend_id id, f.id relation_id, concat(u.first_name, ' ', u.second_name) name, " \
+                  "u.avatar, u.online, (select id from friend where status=1 and user_id=u.id) initial_id "\
+                  "FROM friend f inner join user u on u.id = f.friend_id "\
+                  "where f.user_id=%s and f.status=1" % self.user_id
         sql_assigned_group = "select fg.id group_id, fag.friend_id from friend_assigned_group fag "\
                              "inner join friend_group fg on fg.id = fag.group_id where fag.user_id =%s" % self.user_id
         sql_group = "select * from friend_group"
@@ -50,7 +73,7 @@ class FriendAPI(object):
 
                 friend['groups'].append(c_group)
 
-        return {'success': True, 'friends': friends}
+        return {'success': True, 'friends': friends, 'groups': [grp['name'] for grp in groups]}
 
     def set_group(self):
         """ Setting group for user """
@@ -72,3 +95,18 @@ class FriendAPI(object):
 
         group_db_api.commit()
         return {'success': True}
+
+    def set_friend(self):
+        """ Add friend, unfriend and reject relations  """
+
+        if self.params['action'] == 'add':
+            log.debug('Add friend')
+
+            pass
+
+        elif self.params['action'] == 'del':
+            self.friend_db.delete_by_filter('id="%s"' % self.params['relation_id'])
+            self.friend_db.delete_by_filter('id="%s"' % self.params['initial_id'])
+
+            return {'success': True}
+

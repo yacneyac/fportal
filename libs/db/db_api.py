@@ -9,9 +9,9 @@ Date:
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
-from libs.config import SQLALCHEMY_DATABASE_URI
+from libs.conf import DB_USER, DB_PASS, DB_HOST, DB_NAME
 
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
+engine = create_engine('mysql://%s:%s@%s/%s' % (DB_USER, DB_PASS, DB_HOST, DB_NAME))
 Session = sessionmaker(bind=engine)
 
 

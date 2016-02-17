@@ -14,7 +14,7 @@ from ipwhois import IPWhois
 from libs.models import UserDB, Stat
 from client_parser import simple_detect
 from libs.db.db_api import DataBaseAPI
-from libs.config import UPLOAD_AVATAR
+from libs.conf import UPLOAD_AVATAR
 from libs.logger import ac as log
 
 EMAIL_REGEX = r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$"
@@ -60,6 +60,8 @@ class UserAPI(object):
 
         if self.user_db and self._is_correct_pass() and self.user_db.active:
             self.set_statistic()
+            # todo implement online block on WEBSOCKET
+            self.set_online()
             return True
 
         return False
@@ -80,13 +82,14 @@ class UserAPI(object):
             self.err_msg = 'Login is present'
             return True
 
-        if self.db.get_obj('email="%s"' % self.params['email']):
-            self.err_msg = 'Email is present'
-            return True
+        if self.params.get('email'):
+            if self.db.get_obj('email="%s"' % self.params['email']):
+                self.err_msg = 'Email is present'
+                return True
 
-        if not re.match(EMAIL_REGEX, self.params['email']):
-            self.err_msg = 'Incorrect email'
-            return True
+            if not re.match(EMAIL_REGEX, self.params['email']):
+                self.err_msg = 'Incorrect email'
+                return True
 
         if self.params['password'] != self.params['confpassword']:
             self.err_msg = 'Different value in password field'
@@ -119,6 +122,10 @@ class UserAPI(object):
         log.debug('--> Avatar has been set.')
 
         return {'success': True}
+
+    def set_online(self):
+        self.user_db.online = 1
+        self.db.update(self.user_db)
 
     def set_statistic(self):
         """ Save user's statistic """
@@ -216,7 +223,7 @@ class UserAPI(object):
 
         user = UserDB()
         user.login = self.params['login']
-        user.email = self.params['email']
+        user.email = self.params.get('email', '')
         user.password = self._to_hash(self.params['password'])
         user.first_name = self.params['first_name']
 
