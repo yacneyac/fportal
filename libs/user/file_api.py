@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- encoding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 """
 Propose: 
 Author: 'yac'
@@ -7,9 +6,9 @@ Date:
 """
 
 import os
-from zipfile import ZipFile, ZIP_DEFLATED
-from tempfile import SpooledTemporaryFile
-from contextlib import closing
+# from zipfile import ZipFile, ZIP_DEFLATED
+# from tempfile import SpooledTemporaryFile
+# from contextlib import closing
 from datetime import datetime
 
 from libs.models import FileDB, FileShareDB
@@ -25,8 +24,7 @@ DATE_FORMAT = '%d-%m-%Y %H:%M'
 SERVER_ERROR = {'success': False, 'errorMessage': 'server_error'}
 
 # TODO del share file when friend is over
-# todo add modify/read file
-# todo del from share file table when file eas delete
+# todo del from share file table when file was delete
 # todo check modify on del
 
 

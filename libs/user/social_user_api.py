@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- encoding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 """
 Propose: 
 Author: 'yac'

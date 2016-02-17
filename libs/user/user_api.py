@@ -1,10 +1,10 @@
-#!/usr/bin/env python
-# -*- encoding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 """
 Propose: Describe user API
 Author: 'yac'
 Date: 
 """
+
 import re
 import os
 import hashlib

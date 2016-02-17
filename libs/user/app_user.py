@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# -*- encoding: UTF-8 -*-
-# pylint: disable=C0103,W0212,W0613
+# -*- coding: utf-8 -*-
 """
 Propose: User handlers API
 Author: 'yac'
