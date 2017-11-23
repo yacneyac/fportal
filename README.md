@@ -10,17 +10,13 @@ just for fun :) see demo http://fportal-yacneyac.rhcloud.com/
 
 USER
 * auth by facebook, twitter or create local user
-* save own files (file quote on 5Mb :) )
-* create own event (sync calendar with FB in testing)
-* add friends (testing part)
-
-Use user1(pass: user1) and user2(pass: user2) for test sharing file. user1 and user2 are friends :)
+* save own files
+* create own event (sync calendar with FB)
+* add friends
 
 TODO: add friends for chatting (WebSocket)
 
-TODO: make admin path
-
 ADMIN
-* searhing user, block/unblock, change password
+* searh user, block/unblock, change password
 * create local user
 * get information about user (IP, auth type etc.)
