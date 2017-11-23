@@ -15,15 +15,18 @@
         service.deleteFile = deleteFile;
         service.getFileShare = getFileShare;
         service.setFileShare = setFileShare;
-        service.GetByUsername = GetByUsername;
         service.GetFiles = GetFiles;
+
+        service.GetByUsername = GetByUsername;
         service.Update = Update;
         service.Auth = Auth;
         service.ChangePicture = ChangePicture;
-        service.Create = Create;
+        service.Create = Register;
+
         service.GetEvents = GetEvents;
         service.createEvent = createEvent;
         service.deleteEvent = deleteEvent;
+
         service.getFriends = getFriends;
         //service.getLikelyFriends = getLikelyFriends;
         service.setFriendGroup = setFriendGroup;
@@ -51,17 +54,17 @@
         }
         function deleteFile(fileId) {
             var username = $rootScope.globals.currentUser.username;
-            return $http.post('/user/' + username +'/file/' + fileId).then(handleSuccess, handleServerError);
+            return $http.delete('/user/' + username +'/file/' + fileId).then(handleSuccess, handleServerError);
         }
 
         function getFileShare(fileId) {
             var username = $rootScope.globals.currentUser.username;
-            return $http.get('/user/' + username+ '/file/' + fileId +'?action=share').then(handleSuccess, handleServerError);
+            return $http.get('/user/'+username+'/file/'+fileId+'/share').then(handleSuccess, handleServerError);
         }
 
         function setFileShare(fileId, data) {
             var username = $rootScope.globals.currentUser.username;
-            return $http.post('/user/' + username+ '/file/'+ fileId, data).then(handleSuccess, handleServerError);
+            return $http.post('/user/'+username+'/file/'+fileId+'/share', data).then(handleSuccess, handleServerError);
         }
 
         function getFriends(action) {
@@ -93,13 +96,14 @@
 
             if (data.id){
                 url = '/user/' + username + '/calendar/' + data.id
+                return $http.post(url, data).then(handleSuccess, handleServerError);
             }
 
-            return $http.post(url, data).then(handleSuccess, handleServerError);
+            return $http.put(url, data).then(handleSuccess, handleServerError);
         }
         function deleteEvent(eventId) {
             var username = $rootScope.globals.currentUser.username;
-            return $http.post('/user/' + username + '/calendar/' + eventId).then(handleSuccess, handleServerError);
+            return $http.delete('/user/'+username+'/calendar/'+eventId).then(handleSuccess, handleServerError);
         }
 
         function ChangePicture(data) {
@@ -107,7 +111,7 @@
             return $http.post('/user/' + username + '/avatar', data).then(handleSuccess, handleServerError);
         }
 
-        function Create(user) {
+        function Register(user) {
             return $http.post('/register', user).then(handleSuccess, handleServerError);
         }
         function Update(user) {

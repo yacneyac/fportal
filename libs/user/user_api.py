@@ -45,19 +45,18 @@ class UserAPI(object):
         self.err_msg = ''
 
         self.db = DataBaseAPI(UserDB)
-        self.user_db = self.__set_user_db()
+        self.user_db = self._set_user_db()
 
-    def __set_user_db(self):
+    def _set_user_db(self):
         """ Get UserDB object """
-
+        # use user's login on first login to app
         if self.login:
             return self.db.get_obj('login="%s"' % self.login)
 
-        return self.db.get_obj('id="%s"' % self.user_id)
+        return self.db.get_by_id(self.user_id)
 
     def is_authorized(self):
         """ Check auth user """
-
         if self.user_db and self._is_correct_pass() and self.user_db.active:
             self.set_statistic()
             # todo implement online block on WEBSOCKET
@@ -68,7 +67,6 @@ class UserAPI(object):
 
     def is_error(self):
         """ Check error """
-
         for param in UserDB.REQ_FIELDS:
             if not self.params.get(param, ''):
                 self.err_msg = 'Empty %s' % param

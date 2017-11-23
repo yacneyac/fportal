@@ -11,20 +11,17 @@ from libs.models import FriendDB, FriendAssignedGroupDB
 
 
 class FriendAPI(object):
-    def __init__(self, current_user):
+    def __init__(self, current_user, params=None):
         self.user_id = current_user.id
-        self.friend_db = DataBaseAPI(FriendDB)
-        self.params = {}
+        self.db = DataBaseAPI(FriendDB)
+        self.params = params
 
-    def get_likely_friends(self):
-        sql = "select u.id, concat(u.first_name, ' ', u.second_name) name, u.avatar from user u "\
-              "where u.id not in " \
-              "(select friend_id from friend where user_id={0}) and u.id!={0}".format(self.user_id)
-        connection = self.friend_db.engine.connect()
-        friends_db = connection.execute(sql)
-        connection.close()
-
-        return {'success': True, 'l_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
+    # def get_likely_friends(self):
+    #     sql = "select u.id, concat(u.first_name, ' ', u.second_name) name, u.avatar from user u "\
+    #           "where u.id not in " \
+    #           "(select friend_id from friend where user_id={0}) and u.id!={0}".format(self.user_id)
+    #     friends_db = self.db.execute(sql)
+    #     return {'success': True, 'l_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
 
     def get_request(self):
         sql = "select f.id relation_id, (select id from friend where status=2 and user_id=u.id) initial_id, "\
@@ -32,26 +29,23 @@ class FriendAPI(object):
               "from friend f inner join user u on u.id = f.friend_id "\
               "where f.user_id =%s and f.status=2" % self.user_id
 
-        connection = self.friend_db.engine.connect()
-        friends_db = connection.execute(sql)
-        connection.close()
-
+        friends_db = self.db.execute(sql)
         return {'success': True, 'r_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
 
     def get(self):
+        # sql = "SELECT f.friend_id id, f.id relation_id, concat(u.first_name, ' ', u.second_name) name, " \
+        #           "u.avatar, u.online, (select id from friend where status=1 and user_id=u.id) initial_id "\
+        #           "FROM friend f inner join user u on u.id = f.friend_id "\
+        #           "where f.user_id=%s and f.status=1" % self.user_id
         sql = "SELECT f.friend_id id, f.id relation_id, concat(u.first_name, ' ', u.second_name) name, " \
-                  "u.avatar, u.online, (select id from friend where status=1 and user_id=u.id) initial_id "\
+                  "u.avatar, u.online "\
                   "FROM friend f inner join user u on u.id = f.friend_id "\
                   "where f.user_id=%s and f.status=1" % self.user_id
         sql_assigned_group = "select fg.id group_id, fag.friend_id from friend_assigned_group fag "\
                              "inner join friend_group fg on fg.id = fag.group_id where fag.user_id =%s" % self.user_id
         sql_group = "select * from friend_group"
 
-        connection = self.friend_db.engine.connect()
-        friends_db = connection.execute(sql)
-        assigned_group_db = connection.execute(sql_assigned_group)
-        group_db = connection.execute(sql_group)
-        connection.close()
+        friends_db, assigned_group_db, group_db = self.db.execute((sql, sql_assigned_group, sql_group))
 
         friends = [dict(zip(friends_db.keys(), row)) for row in friends_db]
         assigned_groups = [dict(zip(assigned_group_db.keys(), row)) for row in assigned_group_db]
@@ -103,8 +97,8 @@ class FriendAPI(object):
             pass
 
         elif self.params['action'] == 'del':
-            self.friend_db.delete_by_filter('id="%s"' % self.params['relation_id'])
-            self.friend_db.delete_by_filter('id="%s"' % self.params['initial_id'])
+            self.db.delete_by_id(self.params['relation_id'])
+            self.db.delete_by_id(self.params['initial_id'])
 
             return {'success': True}
 

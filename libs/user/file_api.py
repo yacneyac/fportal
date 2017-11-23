@@ -31,19 +31,22 @@ SERVER_ERROR = {'success': False, 'errorMessage': 'server_error'}
 class ShareFile(object):
     """ Share file with friends """
 
-    def __init__(self, current_user):
-        self.params = {}
-        self.file_id = ''
+    def __init__(self, current_user, file_id, **kwargs):
+        self.params = kwargs
+        self.file_id = file_id
         self.db = DataBaseAPI(FileShareDB)
         self.current_user = current_user
 
     def share_file(self):
         """ Share file """
-
-        if not self.__permission():
+        if not self._permission():
             raise PForbidden
 
-        shared_files = self.db.get_all('file_id="%s" and user_own_id="%s"' % (self.file_id, self.current_user.id))
+        # get all shared files for current user
+        shared_files = self.db.get_all('file_id={current_file_id} and user_own_id={current_user_id}'.format(
+            current_file_id=self.file_id,
+            current_user_id=self.current_user.id
+        ))
 
         # remove user from shared file
         for s_file in shared_files:
@@ -70,34 +73,29 @@ class ShareFile(object):
 
         return {'success': True}
 
-    def get_assigned_user(self, file_id):
-        """ Get users which assigned to file """
-        file_list = self.db.get_all('file_id="%s"' % file_id)
-        return [{'id': db_obj.user_assigned_id, 'text': 'user1  1ds'} for db_obj in file_list]
+    # def get_assigned_user(self, file_id):
+    #     """ Get users which assigned to file """
+    #     file_list = self.db.get_all('file_id="%s"' % file_id)
+    #     return [{'id': db_obj.user_assigned_id, 'text': 'user1  1ds'} for db_obj in file_list]
 
-    def share(self, file_id):
-        """ Get friends and assigned friend """
-
+    def share(self):
+        """ Get list of friends and list of assigned friends to file"""
         friend_sql = self.db.text("SELECT u.id, concat(u.second_name, ' ', u.first_name) text FROM user u "
                                   "inner join friend f on f.friend_id=u.id where f.user_id =%s "
                                   "and f.status = 1" % self.current_user.id)
         share_sql = self.db.text("SELECT fs.user_assigned_id id, "
                                  "concat(u.first_name, ' ', COALESCE(u.second_name, '')) text "
                                  "FROM file_share fs inner join user u on u.id = fs.user_assigned_id "
-                                 "where fs.file_id = %s" % file_id)
+                                 "where fs.file_id = %s" % self.file_id)
 
-        connection = self.db.engine.connect()
-        friend_db_list = connection.execute(friend_sql)
-        share_db_list = connection.execute(share_sql)
-        connection.close()
+        friend_db_list, share_db_list = self.db.execute([friend_sql, share_sql])
 
         return {'success': True,
                 'friend_list': [{'id': friend['id'], 'text': friend['text']} for friend in friend_db_list],
                 'shared_list': [{'id': share['id'], 'text': share['text']} for share in share_db_list]}
 
-    def __permission(self):
-        file_db = self.db.get_obj('id="%s"' % self.file_id, from_table=FileDB)
-
+    def _permission(self):
+        file_db = self.db.get_by_id(self.file_id, from_table=FileDB)
         if int(file_db.user_id) == int(self.current_user.id):
             return True
         return False
@@ -106,28 +104,22 @@ class ShareFile(object):
 class FileAPI(object):
     """ Upload and Download file's API """
 
-    def __init__(self, current_user, file_obj=None):
+    def __init__(self, current_user, file_id=None, **kwargs):
 
         self.current_user = current_user
-        self.file_obj = file_obj
         self.file_db = None
-        self.params = {}
-
-        if self.file_obj:
-            self.file_name = self.file_obj.filename
-            self.file_class, self.file_type = file_obj.content_type.split('/')
+        self.params = kwargs
 
         self.file_dir = os.path.join(UPLOAD_FOLDER, self.current_user.login)
         self.db = DataBaseAPI(FileDB)
 
+        if file_id:
+            self.file_db = self.db.get_by_id(file_id)
+
         # user api
         self.user_api = UserAPI(self.current_user)
-        self.used_file_quota = self.user_api.user_db.used_file_quota
-        self.file_quota = self.user_api.user_db.file_quota
-
-    def set_file(self, file_id):
-        """ Get file from DB by ID """
-        self.file_db = self.db.get_obj('id="%s"' % file_id)
+        # self.used_file_quota = self.user_api.user_db.used_file_quota
+        # self.file_quota = self.user_api.user_db.file_quota
 
     # def to_zip(self):
     #     """ Convert file(s) to zip on fly """
@@ -149,18 +141,26 @@ class FileAPI(object):
     #             else:
     #                 break
 
-    def upload(self):
-        """ Save file in FileSystem and save in DB """
+    def upload(self, file_obj):
+        """ Save file in FileSystem and save in DB
+        :param file_obj: file object for upload
+         """
         file_path = ''
-        try:
-            log.debug('Try to save file <%s> for user ID: %s', self.file_name, self.current_user.login)
+        file_name = file_obj.filename
+        file_class, file_type = file_obj.content_type.split('/')
 
-            if not self._allowed_file():
+        def allowed_file():
+            return '.' in file_name and file_name.split('.')[1] in ALLOWED_EXTENSIONS
+
+        try:
+            log.debug('Try to save file <%s> for user ID: %s', file_name, self.current_user.login)
+
+            if not allowed_file():
                 log.debug('Filetype not allowed')
                 return {'success': False, 'errorMessage': 'Filetype not allowed'}
 
             upload_dir = os.path.join(UPLOAD_FOLDER, self.current_user.login)
-            file_path = os.path.join(upload_dir, self.file_name)
+            file_path = os.path.join(upload_dir, file_name)
 
             if os.path.isfile(file_path):
                 log.debug('File was uploaded already')
@@ -172,7 +172,7 @@ class FileAPI(object):
 
             # save in File System
             with open(file_path, "ab") as f:
-                data = self.file_obj.body
+                data = file_obj.body
                 f.write(bytes(data))
 
             os_f_size = os.stat(file_path).st_size
@@ -185,9 +185,9 @@ class FileAPI(object):
 
             file_db = FileDB()
 
-            file_db.name = self.file_name
-            file_db.type = self.file_type
-            file_db.f_class = self.file_class
+            file_db.name = file_name
+            file_db.type = file_type
+            file_db.f_class = file_class
             file_db.size = os_f_size
             file_db.user_id = self.current_user.id
             file_db.date_load = datetime.now().strftime(DATE_FORMAT)
@@ -212,7 +212,7 @@ class FileAPI(object):
             log.exception('Cannot upload file')
             return SERVER_ERROR
 
-    def file_exist(self):
+    def exist(self):
         return os.path.isfile(os.path.join(self.get_upload_dir(), self.file_db.name))
 
     def get_upload_dir(self):
@@ -225,18 +225,12 @@ class FileAPI(object):
         file_path = os.path.join(self.get_upload_dir(), self.file_db.name)
 
         log.debug('Read file <%s>', file_path)
-
         with open(file_path, "rb") as f:
             while True:
                 _buffer = f.read(4096)
-                if _buffer:
-                    yield _buffer
-                else:
-                    f.close()
+                if not _buffer:
                     break
-
-    def _allowed_file(self):
-        return '.' in self.file_name and self.file_name.split('.')[1] in ALLOWED_EXTENSIONS
+                yield _buffer
 
     def search(self):
         """ Search file by user """
@@ -251,10 +245,7 @@ class FileAPI(object):
                   "'' shared_by_login, '' shared_by_name " \
                   "FROM file_store fs where fs.user_id ={0})".format(self.current_user.id)
 
-            connection = self.db.engine.connect()
-            result = connection.execute(sql)
-            connection.close()
-
+            result = self.db.execute(sql)
             files = [dict(zip(result.keys(), row)) for row in result]
 
             response = {'files': files,
@@ -285,7 +276,7 @@ class FileAPI(object):
             return {'success': False, 'errorMessage': 'File "%s" is shared' % self.file_db.name}
 
         if not self.file_db:
-            log.error('File <%s> not found in DB', self.file_name)
+            log.error('File <%s> not found in DB', self.file_db.name)
             return {'success': False, 'errorMessage': 'File not found in db'}
 
         file_path = os.path.join(self.file_dir, self.file_db.name)
@@ -306,46 +297,46 @@ class FileAPI(object):
         log.debug('--> User in DB has been updated.')
         return {'success': True}
 
-    def __permission(self):
-        file_db = self.db.get_obj('id="%s"' % self.file_obj.file_id)
-        if file_db.user_id == self.current_user.id:
-            self.can_delete = True
-            return True
-
-        log.debug('Check shared file.')
-        select = self.db.text("select fs.user_id owner, fsh.user_assigned_id, fsh.permission from file_store fs "
-                              "inner join file_share fsh on fsh.file_id = fs.id "
-                              "where fs.id = %s" % self.file_obj.file_id)
-        db_response = self.db.engine.execute(select)
-
-        shared_file = {}
-        for db_obj in db_response:
-            shared_file['owner'] = db_obj[0]
-            shared_file['user_assigned_id'] = db_obj[1]
-            shared_file['permission'] = db_obj[2]
-
-        if not shared_file:
-            log.error('File is missing in file share')
-            return False
-
-        # check shared file on current user
-        if int(shared_file['user_assigned_id']) != int(self.current_user.id):
-            return False
-
-        log.debug('Check friend')
-        select = self.db.text("select f.status from friend f "
-                              "where f.user_id =%s and f.friend_id =%s" % (shared_file['owner'], self.current_user.id))
-        db_response = self.db.engine.execute(select)
-
-        friend = [db_obj[0] for db_obj in db_response][0]
-        if not int(friend):
-            return False
-
-        if shared_file['permission'] != 2:
-            log.debug('User has permission on modify')
-            self.can_delete = True
-
-        return True
+    # def __permission(self):
+    #     file_db = self.db.get_obj('id="%s"' % self.file_obj.file_id)
+    #     if file_db.user_id == self.current_user.id:
+    #         self.can_delete = True
+    #         return True
+    #
+    #     log.debug('Check shared file.')
+    #     select = self.db.text("select fs.user_id owner, fsh.user_assigned_id, fsh.permission from file_store fs "
+    #                           "inner join file_share fsh on fsh.file_id = fs.id "
+    #                           "where fs.id = %s" % self.file_obj.file_id)
+    #     db_response = self.db.engine.execute(select)
+    #
+    #     shared_file = {}
+    #     for db_obj in db_response:
+    #         shared_file['owner'] = db_obj[0]
+    #         shared_file['user_assigned_id'] = db_obj[1]
+    #         shared_file['permission'] = db_obj[2]
+    #
+    #     if not shared_file:
+    #         log.error('File is missing in file share')
+    #         return False
+    #
+    #     # check shared file on current user
+    #     if int(shared_file['user_assigned_id']) != int(self.current_user.id):
+    #         return False
+    #
+    #     log.debug('Check friend')
+    #     select = self.db.text("select f.status from friend f "
+    #                           "where f.user_id =%s and f.friend_id =%s" % (shared_file['owner'], self.current_user.id))
+    #     db_response = self.db.engine.execute(select)
+    #
+    #     friend = [db_obj[0] for db_obj in db_response][0]
+    #     if not int(friend):
+    #         return False
+    #
+    #     if shared_file['permission'] != 2:
+    #         log.debug('User has permission on modify')
+    #         self.can_delete = True
+    #
+    #     return True
 
 # def convert_size(size):
 #     if size:

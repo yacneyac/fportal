@@ -6,10 +6,31 @@ Date:
 """
 
 from datetime import datetime
-
+from tornado.web import HTTPError, Finish
 from libs.models import CalendarDB
 from libs.logger import ac as log
 from libs.db.db_api import DataBaseAPI
+
+
+# class Success(object):
+#     answer = None
+#
+#     def __call__(self, **kwargs):
+#         self.answer = {'success': True}.update(kwargs)
+#
+#
+# success = Success().answer
+
+def fail(**params):
+    err = {'success': False}
+    err.update(params)
+    return err
+
+
+def success(**params):
+    ok = {'success': True}
+    ok.update(params)
+    return ok
 
 
 class CalendarAPI(object):
@@ -17,25 +38,12 @@ class CalendarAPI(object):
 
     def __init__(self, user):
         self.user_id = user.id
-        self.params = {}
-
         self.db = DataBaseAPI(CalendarDB)
 
     def get_event(self):
         """Get events"""
-        sql = "select * from calendar where user_id =%s" % self.user_id
-
-        connection = self.db.engine.connect()
-        result = connection.execute(sql)
-        connection.close()
-
-        events = [dict(zip(row.keys(), row)) for row in result]
-        for event in events:
-            for key, val in event.iteritems():
-                if isinstance(val, datetime):
-                    event[key] = str(val)
-
-        return {'success': True, 'result': events}
+        events_db = self.db.get_all('user_id = %s' % self.user_id)
+        return success(result=[event.to_dict() for event in events_db])
 
     def insert(self, event):
         """ Add a new event """
@@ -58,38 +66,27 @@ class CalendarAPI(object):
         self.db.commit()
 
         log.debug('Event has been set for user ID: %s', self.user_id)
-        return {'success': True, 'id': db_event.id}
+        return success(id=db_event.id) #{'success': True, 'id': db_event.id}
 
     def update(self, event):
         """ If event exists in DB, update it """
-        db_event = self.db.get_obj('id="%s"' % event.get('id'))
-        if db_event:
-            db_event.title = event['title'].encode('utf-8')
-            db_event.event_class = event['type']
-            db_event.start_at = event['startsAt']
-            db_event.end_at = event.get('endsAt')
-            db_event.desc = event.get('desc')
-            db_event.recurs_on = event.get('recursOn')
+        db_event = self.db.get_by_id_or_404(event['id'])
 
-            self.db.update(db_event)
+        db_event.title = event['title'].encode('utf-8')
+        db_event.event_class = event['type']
+        db_event.start_at = event['startsAt']
+        db_event.end_at = event.get('endsAt')
+        db_event.desc = event.get('desc')
+        db_event.recurs_on = event.get('recursOn')
+
+        self.db.update(db_event)
 
         log.debug('Event <%s> has been updated.', event['id'])
-        return {'success': True}
+        return success()
 
     def delete(self, event_id):
         """ Delete event """
-        self.db.delete_by_filter('id="%s"' % event_id)
-
+        # todo: get event first
+        self.db.delete_by_id(event_id)
         log.debug('Event <%s> has been deleted.', event_id)
-        return {'success': True}
-
-    # def __timestamp(self, date):
-    #     if date:
-    #         if ':' in date:
-    #             dd = datetime.strptime(date,'%d-%m-%Y %H:%M:%S')
-    #             dt = datetime(dd.year, dd.month, dd.day, dd.hour, dd.minute, dd.second)
-    #             return time.mktime(dt.timetuple())*1000
-    #
-    #         dd = datetime.strptime(date,'%d-%m-%Y')
-    #         dt = datetime(dd.year, dd.month, dd.day)
-    #         return time.mktime(dt.timetuple())*1000
+        return success()
