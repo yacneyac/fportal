@@ -54,6 +54,13 @@ div .input-group {
     top: 30%;
 }
 
+.nav>li>a {
+    padding: 5px 10px;
+}
+
+img {
+    border-radius: .50em;
+}
 /*span .input-error {*/
     /*color:red;*/
     /*font-size: 12px*/
