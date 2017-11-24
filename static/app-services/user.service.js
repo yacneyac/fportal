@@ -11,6 +11,7 @@
         var service = {};
 
         service.uploadFile = uploadFile;
+        service.renameFile = renameFile;
         service.DownloadFile = DownloadFile;
         service.deleteFile = deleteFile;
         service.getFileShare = getFileShare;
@@ -52,9 +53,13 @@
                 url: '/user/' + username + '/file'
             });
         }
+        function renameFile(fileId, data){
+            var username = $rootScope.globals.currentUser.username;
+            return $http.post('/user/'+username+'/file/'+fileId, data).then(handleSuccess, handleServerError);
+        }
         function deleteFile(fileId) {
             var username = $rootScope.globals.currentUser.username;
-            return $http.delete('/user/' + username +'/file/' + fileId).then(handleSuccess, handleServerError);
+            return $http.delete('/user/'+username+'/file/'+fileId).then(handleSuccess, handleServerError);
         }
 
         function getFileShare(fileId) {
@@ -68,7 +73,7 @@
         }
 
         function getFriends(action) {
-            var url = '/user/' + $rootScope.globals.currentUser.username + '/friend?action=' + action;
+            var url = '/user/'+ $rootScope.globals.currentUser.username+'/friend?action=' + action;
             return $http.get(url).then(handleSuccess, handleServerError);
         }
         //function getLikelyFriends() {

@@ -57,7 +57,6 @@ class ShareFile(object):
             if user['id'] not in [s_file.user_assigned_id for s_file in shared_files]:
 
                 file_share = FileShareDB()
-
                 file_share.file_id = self.file_id
                 file_share.user_assigned_id = user['id']
                 file_share.user_own_id = self.current_user.id
@@ -71,6 +70,7 @@ class ShareFile(object):
                 note.send(self.current_user.id, user['id'], note.SHARE_DOCUMENT, msg)
                 log.debug('Notification has been send. \n%s', msg)
 
+        self.db.commit()
         return {'success': True}
 
     # def get_assigned_user(self, file_id):
@@ -141,6 +141,10 @@ class FileAPI(object):
     #             else:
     #                 break
 
+    def update_name(self):
+        self.db.update_field('id=%s' % self.params['id'], {'name': self.params['new_name']})
+        self.db.commit()
+
     def upload(self, file_obj):
         """ Save file in FileSystem and save in DB
         :param file_obj: file object for upload
@@ -184,7 +188,6 @@ class FileAPI(object):
                 return {'success': False, 'errorMessage': 'You don\'t have empty space!'}
 
             file_db = FileDB()
-
             file_db.name = file_name
             file_db.type = file_type
             file_db.f_class = file_class
@@ -192,20 +195,22 @@ class FileAPI(object):
             file_db.user_id = self.current_user.id
             file_db.date_load = datetime.now().strftime(DATE_FORMAT)
 
-            self.db.create(file_db, commit=False)
-            self.db.flush()
-            self.db.update(file_db)
+            self.db.create(file_db)
 
             log.debug('--> File has been updated in DB.')
 
             # update user
             self.user_api.user_db.used_file_quota += os.stat(file_path).st_size  # bytes
-            self.user_api.db.update(self.user_api.user_db)
+            #self.user_api.db.update(self.user_api.user_db)
+
+            self.db.commit()
+            self.user_api.db.commit()
 
             log.debug('--> User in DB has been updated.')
 
             return {'success': True, 'id': file_db.id}
         except StandardError:
+            self.db.session.rollback()
             if os.path.isfile(file_path):
                 log.error('File <%s> has been deleted', file_path)
                 os.remove(file_path)
@@ -286,13 +291,23 @@ class FileAPI(object):
             return {'success': False, 'errorMessage': 'File not found in server'}
 
         self.db.delete(self.file_db)
-        os.remove(file_path)
+        self.user_api.user_db.used_file_quota -= self.file_db.size
+
+        try:
+            os.remove(file_path)
+        except StandardError, err:
+            self.db.session.rollback()
+            self.user_api.db.session.rollback()
+            return {'success': False, 'errorMessage': str(err)}
 
         log.debug('--> File has been deleted.')
 
-        # update User
-        self.user_api.user_db.used_file_quota -= self.file_db.size
-        self.user_api.db.update(self.user_api.user_db)
+
+        # self.user_api.user_db.used_file_quota -= self.file_db.size
+        #self.user_api.db.update(self.user_api.user_db)
+
+        self.db.commit()
+        self.user_api.db.commit()
 
         log.debug('--> User in DB has been updated.')
         return {'success': True}

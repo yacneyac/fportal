@@ -7,27 +7,39 @@ Date:
 
 from libs.db.db_api import DataBaseAPI
 from libs.logger import ac as log
-from libs.models import FriendDB, FriendAssignedGroupDB
+from libs.models import FriendDB, DictFriendStatusDB, FriendAssignedGroupDB
 
 
 class FriendAPI(object):
+
     def __init__(self, current_user, params=None):
         self.user_id = current_user.id
         self.db = DataBaseAPI(FriendDB)
         self.params = params
 
-    # def get_likely_friends(self):
-    #     sql = "select u.id, concat(u.first_name, ' ', u.second_name) name, u.avatar from user u "\
-    #           "where u.id not in " \
-    #           "(select friend_id from friend where user_id={0}) and u.id!={0}".format(self.user_id)
-    #     friends_db = self.db.execute(sql)
-    #     return {'success': True, 'l_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
+        self.status = DictFriendStatusDB
+
+    def get_likely_friends(self):
+        sql = "select u.id, concat(u.first_name, ' ', u.second_name) name, u.avatar from user u "\
+              "where u.id not in " \
+              "(select friend_id from friend where user_id={0}) and u.id!={0}".format(self.user_id)
+        friends_db = self.db.execute(sql)
+        return {'success': True, 'new_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
 
     def get_request(self):
-        sql = "select f.id relation_id, (select id from friend where status=2 and user_id=u.id) initial_id, "\
-              "f.friend_id id, concat(u.first_name, ' ', u.second_name) name, u.avatar "\
-              "from friend f inner join user u on u.id = f.friend_id "\
-              "where f.user_id =%s and f.status=2" % self.user_id
+        """Get people who want to friend with user"""
+
+        # if self.params['action'] == 'my_req':
+        #     sql = "select f.id relation_id, "\
+        #           "f.friend_id id, concat(u.first_name, ' ', u.second_name) name, u.avatar "\
+        #           "from friend f inner join user u on u.id = f.friend_id "\
+        #               "where f.user_id=%s and f.status=2" % self.user_id
+
+        # else:
+        sql = "select f.id relation_id, f.user_id id, "\
+              "concat(u.first_name, ' ', u.second_name) name, u.avatar, u.online "\
+              "from friend f inner join user u on u.id = f.user_id "\
+              "where f.friend_id=%s and f.status=2" % self.user_id
 
         friends_db = self.db.execute(sql)
         return {'success': True, 'r_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
@@ -72,33 +84,53 @@ class FriendAPI(object):
         log.debug('Set group for friend')
 
         group_db_api = DataBaseAPI(FriendAssignedGroupDB)
-        friend_to_group = FriendAssignedGroupDB()
 
         if self.params['assigned']:
+            friend_to_group = FriendAssignedGroupDB()
             friend_to_group.user_id = self.user_id
             friend_to_group.friend_id = self.params['friend_id']
             friend_to_group.group_id = self.params['id']
 
             group_db_api.create(friend_to_group)
-        else:
-            assigned_group = group_db_api.get_obj('group_id=%s and friend_id=%s and user_id=%s' %
-                                                  (self.params['id'], self.params['friend_id'], self.user_id))
-            group_db_api.delete(assigned_group)
-
-        group_db_api.commit()
-        return {'success': True}
-
-    def set_friend(self):
-        """ Add friend, unfriend and reject relations  """
-
-        if self.params['action'] == 'add':
-            log.debug('Add friend')
-
-            pass
-
-        elif self.params['action'] == 'del':
-            self.db.delete_by_id(self.params['relation_id'])
-            self.db.delete_by_id(self.params['initial_id'])
+            group_db_api.commit()
 
             return {'success': True}
 
+        flt = 'group_id=%s and friend_id=%s and user_id=%s' % \
+              (self.params['id'], self.params['friend_id'], self.user_id)
+        group_db_api.delete_by_filter(flt)
+        group_db_api.commit()
+
+        return {'success': True}
+
+    def set_friendship(self, friend_id=None):
+        """ Make friendship with other user  """
+        # for every request for friendship a new relation is created in FriendDB
+        new_friendship = FriendDB()
+        new_friendship.user_id = int(self.user_id)
+        new_friendship.friend_id = int(friend_id)
+        new_friendship.status = self.status.PENDING
+
+        # get answer from a new friend
+        if 'relation_id' in self.params:
+            new_friendship.status = self.status.FRIEND  # set friendship for friend
+
+            # set friendship for current user
+            friendship = self.db.get_by_id_or_404(self.params['relation_id'])
+            friendship.status = self.status.FRIEND
+
+        # create a new friendship and update old
+        self.db.create(new_friendship)
+        self.db.commit()
+
+        return {'success': True, 'id': new_friendship.id}
+
+    def unset_friendship(self, friend_id):
+        # todo: make cancel ?
+        flt = 'user_id=%s and friend_id=%s' % (int(friend_id), self.user_id)
+
+        self.db.delete_by_filter(flt)
+        self.db.delete_by_id(self.params['relation_id'])
+        self.db.commit()
+
+        return {'success': True}

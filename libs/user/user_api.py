@@ -116,14 +116,14 @@ class UserAPI(object):
 
         self.user_db.avatar = file_obj['name']
 
-        self.db.update(self.user_db)
+        self.db.commit()
         log.debug('--> Avatar has been set.')
 
         return {'success': True}
 
     def set_online(self):
         self.user_db.online = 1
-        self.db.update(self.user_db)
+        self.db.commit()
 
     def set_statistic(self):
         """ Save user's statistic """
@@ -147,6 +147,7 @@ class UserAPI(object):
                     date_login=datetime.now().strftime(DATE_FORMAT))
 
         self.db.create(stat)
+        self.db.commit()
         log.debug('Set statistic for user: %s', self.user_id)
 
         return True
@@ -190,7 +191,8 @@ class UserAPI(object):
         if check and not self._is_correct_pass():
             return {'success': False, 'errorMessage': 'incorrect current pass'}
 
-        self.db.update_field('login="%s"' % self.login, {'password': self._to_hash(self.params['newpassword'])})
+        self.user_db.password = self._to_hash(self.params['newpassword'])
+        self.db.commit()
 
         log.debug('New password has been set.')
         return {'success': True}
@@ -210,6 +212,7 @@ class UserAPI(object):
             del self.params['confpassword']
 
         self.db.update_field('login="%s"' % self.login, self.params)
+        self.db.commit()
         log.debug('User ID: %s has been updated.', self.user_id)
         return {'success': True}
 
@@ -226,6 +229,7 @@ class UserAPI(object):
         user.first_name = self.params['first_name']
 
         self.db.create(user)
+        self.db.commit()
         log.debug('User has been created.')
 
         return {'success': True}

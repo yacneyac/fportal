@@ -18,7 +18,7 @@
       <tbody>
         <tr ng-repeat="file in vm.displayedCollection">
           <td style="padding-bottom: 0;padding-right: 0;padding-top: 0;">
-            <a ng-click="vm.download(file.id, file.shared_by_login)" href="">{{file.name}}</a>
+            <a ng-click="vm.download(file.id, file.shared_by_login)" click-to-edit href="">{{file.name}}</a>
             <br>
             <span style="font-size: 10px">{{file.size | bytes}}, {{file.date_load}}</span>
             <span style="font-size: 10px" ng-show="file.shared_by_id">
@@ -28,6 +28,7 @@
           </td>
           <td style="text-align: -webkit-right; padding-top: 12px;">
             <span class="file-action" ng-hide="file.shared_by_id">
+              <a href="" ng-click="vm.renameItem(file)"><i class="glyphicon glyphicon-edit"></i></a>
               <a href="" ng-click="vm.openShare(file)"><i class="glyphicon glyphicon-share"></i></a>
               <a href="" ng-click="vm.removeItem(file)"><i class="glyphicon glyphicon-remove"></i></a>
             </span>

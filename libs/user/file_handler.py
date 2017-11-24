@@ -7,7 +7,11 @@ from .file_api import FileAPI, ShareFile
 
 class FileHandler(BaseHandler):
     """ File handler api """
+    file = None
 
+    # def prepare(self):
+    #     self.file = FileAPI(self.current_user, self.params)
+    #
     @authenticated
     def get(self, **kwargs):
 
@@ -30,38 +34,37 @@ class FileHandler(BaseHandler):
 
         # download
         if self.params['action'] == 'df':
-            file_api = FileAPI(self.current_user, file_id, **self.params)
+            self.file = FileAPI(self.current_user, file_id, **self.params)
 
-            if not file_api.exist():
+            if not self.file.exist():
                 return self.finish({'success': False, 'errorMessage': 'File not exist'})
 
             self.set_header('Content-Type', 'application/octet-stream')
-            self.set_header('Content-Disposition', 'attachment; filename=' + file_api.file_db.name)
+            self.set_header('Content-Disposition', 'attachment; filename=' + self.file.file_db.name)
 
-            map(self.write, file_api.read())
+            map(self.write, self.file.read())
             self.finish()
+            return
 
         # search
         if self.params['action'] == 'sf':
-            self.finish(
-                FileAPI(self.current_user, **self.params).search()
-            )
+            self.finish(FileAPI(self.current_user).search())
 
     @authenticated
     def post(self, **kwargs):
         # upload
         f_obj = self.request.files.get('file')
         if f_obj:
-            self.finish(
-                FileAPI(self.current_user).upload(f_obj[0])
-            )
+            self.finish(FileAPI(self.current_user).upload(f_obj[0]))
+            return
+
+        if 'file_id' in kwargs:
+            self.finish(FileAPI(self.current_user, kwargs['file_id'], **self.params).update_name())
 
     @authenticated
     def delete(self, **kwargs):
-        if kwargs['file_id'] and not self.request.body:
-            self.finish(
-                FileAPI(self.current_user, kwargs['file_id']).delete()
-            )
+        if 'file_id' in kwargs and not self.request.body:
+            self.finish(FileAPI(self.current_user, kwargs['file_id']).delete())
 
 
 class FileShareHandler(BaseHandler):

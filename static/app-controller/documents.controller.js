@@ -1,11 +1,7 @@
 ﻿angular.module('app').controller('FileController', function ($rootScope,$route, UserService, FlashService, $uibModal, $confirm) {
 
     var vm = this;
-
-    initController();
-    function initController() {
-        getFiles()
-    }
+    getFiles()
 
     vm.selectedIndex = null;
     vm.setFilter = function ($index, flt){

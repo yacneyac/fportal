@@ -4,9 +4,9 @@
       <tr>
         <th colspan="5" style="padding: 0">
           <input style="margin-bottom: 5px;" st-search="" class="form-control" placeholder="search ..." type="text"/>
-          <span class="friend-cnt" ng-show="tab.sname=='all_frn'">You have {{friendsCollection.length}} friends</span>
-          <span class="friend-cnt" ng-show="tab.sname=='on_frn'">You have {{vm.friendsOnlineCollection.length}} friends online</span>
-          <span class="friend-cnt" ng-show="tab.sname=='req_frn'">Requests from friend</span>
+          <!--<span class="friend-cnt" ng-show="tab.sname=='all_frn'">{{friendsCollection.length}} friends</span>-->
+          <span class="friend-cnt" ng-show="tab.sname=='on_frn'">{{vm.friendsOnlineCollection.length}} friends online</span>
+          <!--<span class="friend-cnt" ng-show="tab.sname=='req_frn'">Requests from friend</span>-->
           <span class="friend-cnt" ng-show="tab.sname=='new_frn'">Friends</span>
         </th>
       </tr>
@@ -38,7 +38,7 @@
             </li>
             <li>
               <a class="friend-act" href="" ng-click="vm.addDelFriend('add', friend)"
-                 ng-show="tab.sname=='new_frn'">Friend</a>
+                 ng-show="tab.sname=='new_frn' || vm.friendBtnShow">Friend</a>
             </li>
             <li>
               <a class="friend-act" href="" ng-click="vm.addDelFriend('del', friend)"
@@ -74,9 +74,12 @@
   <ul class="nav">
     <li>
       <a class="doc" href="" ng-click="vm.getNewFriends()">
-        <i class="glyphicon glyphicon-plus"></i> More friends</a>
+        <i class="glyphicon glyphicon-plus"></i>
+      </a>
     </li>
     <li class="nav-divider"></li>
+
+    <!--filter-->
     <li>
       <a class="doc" href="" ng-click="vm.setFilter(null, null)">All friends</a>
     </li>

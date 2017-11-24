@@ -53,26 +53,29 @@ class DataBaseAPI(object):
 
     def delete(self, db_obj):
         self.session.delete(db_obj)
-        self.commit()
+        # if commit:
+        #     self.commit()
 
     def delete_by_id(self, _id):
         self.delete(self.get_by_id_or_404(_id))
 
     def delete_by_filter(self, flt_by):
         self.session.query(self.table).filter(flt_by).delete(synchronize_session='fetch')
-        self.commit()
+        # if commit:
+        #     self.commit()
 
-    def create(self, db_obj, commit=True):
+    def create(self, db_obj):
         self.session.add(db_obj)
-        if commit:
-            self.commit()
+        # if commit:
+        #     self.commit()
 
-    def update(self, db_obj):
-        self.create(db_obj)
+    # def update(self, db_obj):
+    #     self.create(db_obj)
 
     def update_field(self, flt_by, update_dict):
         self.session.query(self.table).filter(flt_by).update(update_dict, synchronize_session='fetch')
-        self.commit()
+        # if commit:
+        #     self.commit()
 
     def execute(self, sql):
         """Execute raw query"""

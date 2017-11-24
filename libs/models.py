@@ -102,8 +102,12 @@ class DictPermissionDB(Base):
 class DictFriendStatusDB(Base):
     __tablename__ = 'dict_friend_status'
 
+    FRIEND = 1
+    PENDING = 2
+    CANCEL = 3
+
     id = Column(Integer(), primary_key=True)
-    value = Column(String(10))  # pending, friend, cancel
+    value = Column(String(10))  # pending 2, friend 1, cancel 3
 
 
 class FriendDB(Base):

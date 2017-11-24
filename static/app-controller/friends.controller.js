@@ -18,8 +18,10 @@ angular.module('app').controller('FriendsController',
 
     getFriends();
 
+     vm.friendBtnShow = true;
+
     function getFriends(){
-        UserService.getFriends('o').then(function (response) {
+        UserService.getFriends('all').then(function (response) {
 
             if (response.success) {
 
@@ -38,17 +40,17 @@ angular.module('app').controller('FriendsController',
         vm.friendTabs[3].hide=false;
         vm.friendTabs[3].active=true;
 
-        UserService.getFriends('l').then(function (response) {
+        UserService.getFriends('new').then(function (response) {
 
             if (response.success)
-                generateFriendList(response.l_friends);
+                generateFriendList(response.new_friends);
             else
                 FlashService.Error(response.errorMessage);
         });
     };
 
-    vm.getRequestsFriends = function(){
-        UserService.getFriends('r').then(function (response) {
+    vm.getRequestsFriends = function(action){
+        UserService.getFriends(action).then(function (response) {
 
             if (response.success)
                 generateFriendList(response.r_friends);
@@ -110,7 +112,7 @@ angular.module('app').controller('FriendsController',
             vm.friendTabs[3].hide=true;
 
         if ($index==2)
-            vm.getRequestsFriends()
+            vm.getRequestsFriends('my_req')
     };
 
     vm.setGroup = function(assignedGroup, friendId){
@@ -134,6 +136,9 @@ angular.module('app').controller('FriendsController',
 
         UserService.actionFriend(friend.id, data).then(function (response) {
             if (response.success){
+
+                vm.friendBtnShow = false;
+
 
                 // todo
                 if (action=='add'){
@@ -160,7 +165,7 @@ angular.module('app').controller('FriendsController',
             if (!source[i].avatar)
                 source[i].avatarurl = '/static/img/photo.png';
             else
-                source[i].avatarurl = '/static/avatar/' + source[i].id + '/' + source[i].avatar;
+                source[i].avatarurl = '/static/avatar/'+source[i].id+'/'+source[i].avatar;
         }
         vm.displayedCollection = [].concat(source);
     }

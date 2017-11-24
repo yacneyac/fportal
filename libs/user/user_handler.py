@@ -89,6 +89,7 @@ class UserHandler(BaseHandler):
         if not kwargs['extend']:
             self.set_header('Content-Type', 'application/json')
             self.finish({'success': True, 'result': params})
+            return
 
         self.render('user/%s' % kwargs['extend'], **params)
 

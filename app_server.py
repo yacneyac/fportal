@@ -2,7 +2,7 @@
 import os
 from tornado import web
 
-from libs.user.app_user import user_handlers
+from libs.user.app_user import handlers as user_handlers
 from libs.oauth_api import oauth_handlers
 
 

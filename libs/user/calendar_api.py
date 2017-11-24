@@ -60,13 +60,11 @@ class CalendarAPI(object):
         db_event.event_source = event.get('source')
         db_event.recurs_on = event.get('recursOn')
 
-        self.db.create(db_event, commit=False)
-        self.db.flush()
-        self.db.update(db_event)
+        self.db.create(db_event)
         self.db.commit()
 
         log.debug('Event has been set for user ID: %s', self.user_id)
-        return success(id=db_event.id) #{'success': True, 'id': db_event.id}
+        return success(id=db_event.id)
 
     def update(self, event):
         """ If event exists in DB, update it """
@@ -79,7 +77,7 @@ class CalendarAPI(object):
         db_event.desc = event.get('desc')
         db_event.recurs_on = event.get('recursOn')
 
-        self.db.update(db_event)
+        self.db.commit()
 
         log.debug('Event <%s> has been updated.', event['id'])
         return success()
@@ -88,5 +86,6 @@ class CalendarAPI(object):
         """ Delete event """
         # todo: get event first
         self.db.delete_by_id(event_id)
+        self.db.commit()
         log.debug('Event <%s> has been deleted.', event_id)
         return success()
