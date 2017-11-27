@@ -18,7 +18,7 @@ angular.module('app').controller('FriendsController',
 
     getFriends();
 
-     vm.friendBtnShow = true;
+//     vm.friendBtnShow = false;
 
     function getFriends(){
         UserService.getFriends('all').then(function (response) {
@@ -137,7 +137,7 @@ angular.module('app').controller('FriendsController',
         UserService.actionFriend(friend.id, data).then(function (response) {
             if (response.success){
 
-                vm.friendBtnShow = false;
+                //vm.friendBtnShow = false;
 
 
                 // todo
