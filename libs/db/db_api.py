@@ -81,8 +81,9 @@ class DataBaseAPI(object):
         """Execute raw query"""
         with self.engine.connect() as conn:
             if isinstance(sql, (list, tuple)):
-                return map(conn.execute, sql)
-            return conn.execute(sql)
+                results = map(conn.execute, sql)
+                return [map(dict, res) for res in results]
+            return map(dict, conn.execute(sql))
 
     def commit(self):
         try:

@@ -89,10 +89,9 @@ class ShareFile(object):
                                  "where fs.file_id = %s" % self.file_id)
 
         friend_db_list, share_db_list = self.db.execute([friend_sql, share_sql])
-
         return {'success': True,
-                'friend_list': [{'id': friend['id'], 'text': friend['text']} for friend in friend_db_list],
-                'shared_list': [{'id': share['id'], 'text': share['text']} for share in share_db_list]}
+                'friend_list': friend_db_list,
+                'shared_list': share_db_list}
 
     def _permission(self):
         file_db = self.db.get_by_id(self.file_id, from_table=FileDB)
@@ -250,13 +249,12 @@ class FileAPI(object):
                   "'' shared_by_login, '' shared_by_name " \
                   "FROM file_store fs where fs.user_id ={0})".format(self.current_user.id)
 
-            result = self.db.execute(sql)
-            files = [dict(zip(result.keys(), row)) for row in result]
+            files = self.db.execute(sql)
 
             response = {'files': files,
                         'used_quota': self.user_api.user_db.used_file_quota,
                         'quota': self.user_api.user_db.file_quota,
-                        'total': result.rowcount,
+                        'total': len(files),
                         'extends': list(set(fl['type'] for fl in files))}
 
             return {'success': True, 'result': response}

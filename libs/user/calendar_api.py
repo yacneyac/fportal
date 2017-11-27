@@ -43,7 +43,7 @@ class CalendarAPI(object):
     def get_event(self):
         """Get events"""
         events_db = self.db.get_all('user_id = %s' % self.user_id)
-        return success(result=[event.to_dict() for event in events_db])
+        return success(result=map(lambda event: dict(event), events_db))
 
     def insert(self, event):
         """ Add a new event """

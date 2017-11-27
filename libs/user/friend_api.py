@@ -24,7 +24,7 @@ class FriendAPI(object):
               "where u.id not in " \
               "(select friend_id from friend where user_id={0}) and u.id!={0}".format(self.user_id)
         friends_db = self.db.execute(sql)
-        return {'success': True, 'new_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
+        return {'success': True, 'new_friends': friends_db}
 
     def get_request(self):
         """Get people who want to friend with user"""
@@ -42,7 +42,7 @@ class FriendAPI(object):
               "where f.friend_id=%s and f.status=2" % self.user_id
 
         friends_db = self.db.execute(sql)
-        return {'success': True, 'r_friends': [dict(zip(friends_db.keys(), row)) for row in friends_db]}
+        return {'success': True, 'r_friends': friends_db}
 
     def get(self):
         # sql = "SELECT f.friend_id id, f.id relation_id, concat(u.first_name, ' ', u.second_name) name, " \
@@ -57,11 +57,11 @@ class FriendAPI(object):
                              "inner join friend_group fg on fg.id = fag.group_id where fag.user_id =%s" % self.user_id
         sql_group = "select * from friend_group"
 
-        friends_db, assigned_group_db, group_db = self.db.execute((sql, sql_assigned_group, sql_group))
+        friends, assigned_groups, groups = self.db.execute((sql, sql_assigned_group, sql_group))
 
-        friends = [dict(zip(friends_db.keys(), row)) for row in friends_db]
-        assigned_groups = [dict(zip(assigned_group_db.keys(), row)) for row in assigned_group_db]
-        groups = [dict(zip(group_db.keys(), row)) for row in group_db]
+        # friends = [dict(zip(friends_db.keys(), row)) for row in friends_db]
+        # assigned_groups = [dict(zip(assigned_group_db.keys(), row)) for row in assigned_group_db]
+        # groups = [dict(zip(group_db.keys(), row)) for row in group_db]
 
         for friend in friends:
             friend['groups'] = []
