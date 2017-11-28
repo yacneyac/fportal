@@ -19,7 +19,7 @@ class FriendAPI(object):
 
         self.status = DictFriendStatusDB
 
-    def get_likely_friends(self):
+    def get_new_friends(self):
         sql = "select u.id, concat(u.first_name, ' ', u.second_name) name, u.avatar from user u "\
               "where u.id not in " \
               "(select friend_id from friend where user_id={0}) and u.id!={0}".format(self.user_id)
@@ -44,7 +44,8 @@ class FriendAPI(object):
         friends_db = self.db.execute(sql)
         return {'success': True, 'r_friends': friends_db}
 
-    def get(self):
+    def get_all(self):
+        """Get all friends and groups"""
         # sql = "SELECT f.friend_id id, f.id relation_id, concat(u.first_name, ' ', u.second_name) name, " \
         #           "u.avatar, u.online, (select id from friend where status=1 and user_id=u.id) initial_id "\
         #           "FROM friend f inner join user u on u.id = f.friend_id "\
@@ -58,10 +59,6 @@ class FriendAPI(object):
         sql_group = "select * from friend_group"
 
         friends, assigned_groups, groups = self.db.execute((sql, sql_assigned_group, sql_group))
-
-        # friends = [dict(zip(friends_db.keys(), row)) for row in friends_db]
-        # assigned_groups = [dict(zip(assigned_group_db.keys(), row)) for row in assigned_group_db]
-        # groups = [dict(zip(group_db.keys(), row)) for row in group_db]
 
         for friend in friends:
             friend['groups'] = []

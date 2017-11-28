@@ -14,28 +14,23 @@ class FriendHandler(BaseHandler):
     @authenticated
     def get(self, **kwargs):
         if self.params.get('action') == 'new':
-            self.finish(self.friend.get_likely_friends())
-            return
-        if self.params.get('action') in ('my_req', 'req_me'):
+            self.finish(self.friend.get_new_friends())
+        elif self.params.get('action') in ('my_req', 'req_me'):
             self.finish(self.friend.get_request())
-            return
-        # get all
-        self.finish(self.friend.get())
+        else:
+            self.finish(self.friend.get_all())
 
     @authenticated
     def post(self, **kwargs):
         if kwargs['friend_id']:
             if self.params.get('action') == 'add':
                 self.finish(self.friend.set_friendship(kwargs['friend_id']))
-                return
-
             elif self.params.get('action') == 'del':
                 self.finish(self.friend.unset_friendship(kwargs['friend_id']))
-                return
-
             elif self.params.get('action') == 'reject':
                 print 'REJECT', kwargs, self.params
                 self.finish({'success': True})
-                return
 
-        self.finish(self.friend.set_group())
+        # todo: update api . need to use friend_id from kwargs
+        else:
+            self.finish(self.friend.set_group())

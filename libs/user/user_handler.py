@@ -25,6 +25,7 @@ class LoginHandler(BaseHandler):
                 # TODO redirect by next in url
                 # return self.redirect('/user/%s' % user_api.user_db.id)
                 self.finish({'success': True})
+                return
 
         self.finish({'success': False, 'errorMessage': 'Invalid username/password'})
 
@@ -103,5 +104,6 @@ class UserHandler(BaseHandler):
 
         if kwargs['extend'] == 'avatar':
             self.finish(user_api.set_avatar(self.params['file']))
+            return 
 
         self.finish(user_api.update())

@@ -44,7 +44,7 @@ class FileHandler(BaseHandler):
 
             map(self.write, self.file.read())
             self.finish()
-            return
+            # return
 
         # search
         if self.params['action'] == 'sf':
@@ -56,8 +56,8 @@ class FileHandler(BaseHandler):
         f_obj = self.request.files.get('file')
         if f_obj:
             self.finish(FileAPI(self.current_user).upload(f_obj[0]))
-            return
 
+        # update
         if 'file_id' in kwargs:
             self.finish(FileAPI(self.current_user, kwargs['file_id'], **self.params).update_name())
 
@@ -71,12 +71,14 @@ class FileShareHandler(BaseHandler):
 
     @authenticated
     def get(self, **kwargs):
+        """Get friends who assigned to file"""
         self.finish(
             ShareFile(self.current_user, kwargs['file_id']).share()
         )
 
     @authenticated
     def post(self, **kwargs):
+        """Update assigned friend"""
         self.finish(
             ShareFile(self.current_user, kwargs['file_id'], **self.params).share_file()
         )
