@@ -12,15 +12,6 @@ from libs.logger import ac as log
 from libs.db.db_api import DataBaseAPI
 
 
-# class Success(object):
-#     answer = None
-#
-#     def __call__(self, **kwargs):
-#         self.answer = {'success': True}.update(kwargs)
-#
-#
-# success = Success().answer
-
 def fail(**params):
     err = {'success': False}
     err.update(params)
@@ -41,9 +32,9 @@ class CalendarAPI(object):
         self.db = DataBaseAPI(CalendarDB)
 
     def get_event(self):
-        """Get events"""
+        """Get all events for current user"""
         events_db = self.db.get_all('user_id = %s' % self.user_id)
-        return success(result=map(lambda event: dict(event), events_db))
+        return success(result=[event.to_dict() for event in events_db])
 
     def insert(self, event):
         """ Add a new event """
@@ -83,8 +74,7 @@ class CalendarAPI(object):
         return success()
 
     def delete(self, event_id):
-        """ Delete event """
-        # todo: get event first
+        """ Delete event by ID"""
         self.db.delete_by_id(event_id)
         self.db.commit()
         log.debug('Event <%s> has been deleted.', event_id)

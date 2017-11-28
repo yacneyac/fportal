@@ -11,12 +11,12 @@ from sqlalchemy.orm import class_mapper
 Base = declarative_base()
 
 
-# def to_dict(self):
-#     return dict((col.name, getattr(self, col.name))
-#                 for col in class_mapper(self.__class__).mapped_table.c)
-#
-#
-# Base.to_dict = to_dict
+def to_dict(self):
+    return dict((col.name, getattr(self, col.name))
+                for col in class_mapper(self.__class__).mapped_table.c)
+
+
+Base.to_dict = to_dict
 
 
 class UserDB(Base):

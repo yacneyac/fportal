@@ -5,9 +5,9 @@ Author: 'yac'
 Date: 
 """
 from tornado.web import HTTPError
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import text
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from libs.conf import DB_USER, DB_PASS, DB_HOST, DB_NAME
 
 engine = create_engine('mysql://%s:%s@%s/%s' % (DB_USER, DB_PASS, DB_HOST, DB_NAME))
@@ -31,20 +31,17 @@ class DataBaseAPI(object):
         pass
 
     def get_by_id_or_404(self, _id, from_table=None):
-        obj = self.get_by_id(_id, from_table)
+        obj = self.get_obj('id="%s"' % _id, from_table)
 
-        if not obj:
+        if obj is None:
             msg = 'object id={id} is not found in DB "{table}"'.format(id=_id, table=from_table or self.table)
             raise HTTPError(404, msg)
         return obj
 
-    def get_by_id(self, _id, from_table=None):
-        return self.get_obj('id="%s"' % _id, from_table)
-
     def get_obj(self, flt_by, from_table=None):
-        db_view = self.session.query(from_table or self.table).filter(flt_by).first()
-        # self.session.close()
-        return db_view
+        return self.session.query(from_table or self.table).filter(flt_by).one_or_none()
+        # except MultipleResultsFound:
+        #     pass
 
     def get_all(self, flt_by):
         db_view = self.session.query(self.table).filter(flt_by).all()

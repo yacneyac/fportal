@@ -53,7 +53,7 @@ class UserAPI(object):
         if self.login:
             return self.db.get_obj('login="%s"' % self.login)
 
-        return self.db.get_by_id(self.user_id)
+        return self.db.get_by_id_or_404(self.user_id)
 
     def is_authorized(self):
         """ Check auth user """

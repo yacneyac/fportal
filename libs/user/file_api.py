@@ -94,7 +94,7 @@ class ShareFile(object):
                 'shared_list': share_db_list}
 
     def _permission(self):
-        file_db = self.db.get_by_id(self.file_id, from_table=FileDB)
+        file_db = self.db.get_by_id_or_404(self.file_id, from_table=FileDB)
         if int(file_db.user_id) == int(self.current_user.id):
             return True
         return False
@@ -113,7 +113,7 @@ class FileAPI(object):
         self.db = DataBaseAPI(FileDB)
 
         if file_id:
-            self.file_db = self.db.get_by_id(file_id)
+            self.file_db = self.db.get_by_id_or_404(file_id)
 
         # user api
         self.user_api = UserAPI(self.current_user)
@@ -274,7 +274,7 @@ class FileAPI(object):
         # todo send message for users when file is deleted
         shared_file_db = self.db.get_obj('file_id="%s"' % self.file_db.id, from_table=FileShareDB)
 
-        if shared_file_db:
+        if shared_file_db is not None:
             log.error('File "%s" is shared' % self.file_db.name)
             return {'success': False, 'errorMessage': 'File "%s" is shared' % self.file_db.name}
 
