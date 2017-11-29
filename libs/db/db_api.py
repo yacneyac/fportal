@@ -53,8 +53,8 @@ class DataBaseAPI(object):
         # if commit:
         #     self.commit()
 
-    def delete_by_id(self, _id):
-        self.delete(self.get_by_id_or_404(_id))
+    def delete_by_id(self, _id, from_table=None):
+        self.delete(self.get_by_id_or_404(_id, from_table=from_table))
 
     def delete_by_filter(self, flt_by):
         self.session.query(self.table).filter(flt_by).delete(synchronize_session='fetch')

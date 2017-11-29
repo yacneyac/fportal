@@ -123,10 +123,19 @@ class FriendAPI(object):
 
     def unset_friendship(self, friend_id):
         # todo: make cancel status ?
-        flt = 'user_id=%s and friend_id=%s' % (int(friend_id), self.user_id)
 
+        # find and delete relation for friend
+        flt = 'user_id=%s and friend_id=%s' % (friend_id, self.user_id)
         self.db.delete_by_filter(flt)
+
+        # delete relation for current user
         self.db.delete_by_id(self.params['relation_id'])
+
+        # delete assigned group for friend
+        for group in self.params['groups']:
+            if group['assigned']:
+                self.db.delete_by_id(group['assign_id'], FriendAssignedGroupDB)
+
         self.db.commit()
 
         return {'success': True}

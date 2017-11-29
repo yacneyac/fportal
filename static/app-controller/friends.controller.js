@@ -124,7 +124,7 @@ angular.module('app').controller('FriendsController',
     vm.addDelFriend = function(action, friend){
 
         var data = {action: action,
-                    initial_id: friend.initial_id,
+//                    initial_id: friend.initial_id,
                     relation_id: friend.relation_id,
                     groups: friend.groups
         };
