@@ -15,7 +15,7 @@ from libs.models import FileDB, FileShareDB
 from libs.conf import UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 from libs.db.db_api import DataBaseAPI
 from libs.portal_exeption import PForbidden
-from libs.logger import ac as log
+from libs.logger import log
 from user_api import UserAPI
 from notification_api import NotificationAPI
 note = NotificationAPI()

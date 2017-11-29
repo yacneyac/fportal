@@ -5,10 +5,8 @@ Author: 'yac'
 Date: 
 """
 
-from datetime import datetime
-from tornado.web import HTTPError, Finish
 from libs.models import CalendarDB
-from libs.logger import ac as log
+from libs.logger import log
 from libs.db.db_api import DataBaseAPI
 
 

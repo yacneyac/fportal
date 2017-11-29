@@ -15,7 +15,7 @@ from libs.models import UserDB, Stat
 from client_parser import simple_detect
 from libs.db.db_api import DataBaseAPI
 from libs.conf import UPLOAD_AVATAR
-from libs.logger import ac as log
+from libs.logger import log
 
 EMAIL_REGEX = r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$"
 DATE_FORMAT = '%d-%m-%Y %H:%M:%S'

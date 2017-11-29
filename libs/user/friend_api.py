@@ -6,7 +6,7 @@ Date:
 """
 
 from libs.db.db_api import DataBaseAPI
-from libs.logger import ac as log
+from libs.logger import log
 from libs.models import FriendDB, DictFriendStatusDB, FriendAssignedGroupDB
 
 

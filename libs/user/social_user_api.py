@@ -7,7 +7,7 @@ Date:
 from datetime import datetime
 
 from libs.models import UserDB
-from libs.logger import ac as log
+from libs.logger import log
 from user_api import UserAPI
 #from calendar_api import CalendarAPI, CalendarDB
 
