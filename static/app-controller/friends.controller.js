@@ -11,14 +11,11 @@ angular.module('app').controller('FriendsController',
                      {'name': 'New Friends', 'sname': 'new_frn', 'isOnline': null, 'hide': true, 'content': content}
     ];
 
-    //vm.showNewFriends = false;
     vm.actions = ['Write a message', 'Friend', 'Unfriend'];
     vm.displayedCollection = [];
     $rootScope.friendsCollection = [];
 
     getFriends();
-
-//     vm.friendBtnShow = false;
 
     function getFriends(){
         UserService.getFriends('all').then(function (response) {
@@ -116,11 +113,11 @@ angular.module('app').controller('FriendsController',
     };
 
     vm.setGroup = function(assignedGroup, friendId){
-        assignedGroup.friend_id = friendId;
-
-        UserService.setFriendGroup(assignedGroup).then(function (response) {
+        UserService.setFriendGroup(friendId, assignedGroup).then(function (response) {
             if (!response.success)
                 FlashService.Error(response.errorMessage);
+            else
+                assignedGroup.assign_id = response.id;
         });
     };
 
@@ -136,9 +133,6 @@ angular.module('app').controller('FriendsController',
 
         UserService.actionFriend(friend.id, data).then(function (response) {
             if (response.success){
-
-                //vm.friendBtnShow = false;
-
 
                 // todo
                 if (action=='add'){

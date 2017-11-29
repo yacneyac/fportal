@@ -22,15 +22,12 @@ class FriendHandler(BaseHandler):
 
     @authenticated
     def post(self, **kwargs):
-        if kwargs['friend_id']:
-            if self.params.get('action') == 'add':
-                self.finish(self.friend.set_friendship(kwargs['friend_id']))
-            elif self.params.get('action') == 'del':
-                self.finish(self.friend.unset_friendship(kwargs['friend_id']))
-            elif self.params.get('action') == 'reject':
-                print 'REJECT', kwargs, self.params
-                self.finish({'success': True})
-
-        # todo: update api . need to use friend_id from kwargs
+        if self.params.get('action') == 'add':
+            self.finish(self.friend.set_friendship(kwargs['friend_id']))
+        elif self.params.get('action') == 'del':
+            self.finish(self.friend.unset_friendship(kwargs['friend_id']))
+        elif self.params.get('action') == 'reject':
+            print 'REJECT', kwargs, self.params
+            self.finish({'success': True})
         else:
-            self.finish(self.friend.set_group())
+            self.finish(self.friend.set_group(kwargs['friend_id']))

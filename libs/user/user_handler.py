@@ -104,6 +104,6 @@ class UserHandler(BaseHandler):
 
         if kwargs['extend'] == 'avatar':
             self.finish(user_api.set_avatar(self.params['file']))
-            return 
+            return
 
         self.finish(user_api.update())

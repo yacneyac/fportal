@@ -10,6 +10,7 @@ import tornado.log
 
 from libs.conf import ACCESS_PATH, APP_PATH, GEN_PATH, LOG_LVL
 
+# todo: add to formatter user's login or ID
 
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s',
                               datefmt='%d-%m-%Y %H:%M:%S')

@@ -54,12 +54,13 @@ class FriendAPI(object):
                   "u.avatar, u.online "\
                   "FROM friend f inner join user u on u.id = f.friend_id "\
                   "where f.user_id=%s and f.status=1" % self.user_id
-        sql_assigned_group = "select fg.id group_id, fag.friend_id from friend_assigned_group fag "\
+        sql_assigned_group = "select fag.id assign_id, fg.id group_id, fag.friend_id from friend_assigned_group fag "\
                              "inner join friend_group fg on fg.id = fag.group_id where fag.user_id =%s" % self.user_id
-        sql_group = "select * from friend_group"
+        sql_group = "select id, name from friend_group"
 
         friends, assigned_groups, groups = self.db.execute((sql, sql_assigned_group, sql_group))
 
+        # todo: need to refactor
         for friend in friends:
             friend['groups'] = []
 
@@ -70,33 +71,31 @@ class FriendAPI(object):
                 for assigned_group in assigned_groups:
                     if c_group['id'] == assigned_group['group_id'] and assigned_group['friend_id'] == friend['id']:
                         c_group['assigned'] = True
+                        c_group['assign_id'] = assigned_group['assign_id']
                         break
 
                 friend['groups'].append(c_group)
 
         return {'success': True, 'friends': friends, 'groups': [grp['name'] for grp in groups]}
 
-    def set_group(self):
+    def set_group(self, friend_id):
         """ Setting group for user """
-        log.debug('Set group for friend')
-
         group_db_api = DataBaseAPI(FriendAssignedGroupDB)
 
         if self.params['assigned']:
             friend_to_group = FriendAssignedGroupDB()
             friend_to_group.user_id = self.user_id
-            friend_to_group.friend_id = self.params['friend_id']
+            friend_to_group.friend_id = friend_id
             friend_to_group.group_id = self.params['id']
 
             group_db_api.create(friend_to_group)
             group_db_api.commit()
+            log.debug('Group has been assigned')
+            return {'success': True, 'id': friend_to_group.id}
 
-            return {'success': True}
-
-        flt = 'group_id=%s and friend_id=%s and user_id=%s' % \
-              (self.params['id'], self.params['friend_id'], self.user_id)
-        group_db_api.delete_by_filter(flt)
+        group_db_api.delete_by_id(self.params['assign_id'])
         group_db_api.commit()
+        log.debug('Assigned group has been deleted')
 
         return {'success': True}
 
@@ -123,7 +122,7 @@ class FriendAPI(object):
         return {'success': True, 'id': new_friendship.id}
 
     def unset_friendship(self, friend_id):
-        # todo: make cancel ?
+        # todo: make cancel status ?
         flt = 'user_id=%s and friend_id=%s' % (int(friend_id), self.user_id)
 
         self.db.delete_by_filter(flt)

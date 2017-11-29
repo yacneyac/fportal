@@ -80,9 +80,9 @@
         //    var url = '/user/' + $rootScope.globals.currentUser.username + '/friend?action=l';
         //    return $http.get(url).then(handleSuccess, handleServerError);
         //}
-        function setFriendGroup(data) {
+        function setFriendGroup(friendId, data) {
             var username = $rootScope.globals.currentUser.username;
-            return $http.post('/user/' + username + '/friend', data).then(handleSuccess, handleServerError);
+            return $http.post('/user/'+username+'/friend/'+friendId, data).then(handleSuccess, handleServerError);
         }
 
         function actionFriend(friendId, data) {
