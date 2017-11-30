@@ -5,10 +5,9 @@ angular.module('app').controller('FriendsController',
 
     var content = '/static/app-content/friends.list.html';
 
-    vm.friendTabs = [{'name': 'All Friends', 'sname': 'all_frn', 'isOnline': false, 'content': content},
-                     {'name': 'Online', 'sname': 'on_frn', 'isOnline': true, 'content': content},
-                     {'name': 'Requests', 'sname': 'req_frn', 'isOnline': null, 'content': content},
-                     {'name': 'New Friends', 'sname': 'new_frn', 'isOnline': null, 'hide': true, 'content': content}
+    vm.friendTabs = [{'name': 'All Friends', 'sname': 'all_frn', 'content': content},
+                     {'name': 'Requests', 'sname': 'req_frn', 'content': content},
+                     {'name': 'New Friends', 'sname': 'new_frn', 'hide': true, 'content': content}
     ];
 
     vm.actions = ['Write a message', 'Friend', 'Unfriend'];
@@ -56,51 +55,36 @@ angular.module('app').controller('FriendsController',
         });
     };
 
-
-    vm.selectedIndex = null;
-    vm.isOnline = false;
-
-    vm.setOnline = function(online){
-        if (online == null)
-            return;
-
-        vm.isOnline = online;
-        vm.setFilter(null, null)
-    };
-
-    vm.setFilter = function ($index, flt){
-        vm.selectedIndex = $index;
+    // TODO: ng-class in html
+    vm.setFilter = function (flt){
         vm.displayedCollection = [];
-        var dataSource = $rootScope.friendsCollection;
+        var friendsSource = $rootScope.friendsCollection;
 
-        if (vm.isOnline)
-            dataSource = vm.friendsOnlineCollection;
-
-        if (flt) {
-            for (var i = 0; i < dataSource.length; i++) {
-
-                var f_groups = dataSource[i].groups;
-
-                for (var j=0; j<f_groups.length; j++){
-                    if (f_groups[j].assigned && f_groups[j].name == flt){
-                        vm.displayedCollection.push(dataSource[i])
-                    }
+        if (flt == 'online'){
+            for (var i = 0; i < friendsSource.length; i++) {
+                if (friendsSource[i].online){
+                    vm.displayedCollection.push(friendsSource[i])
                 }
             }
         }
-        else {
-            if (vm.isOnline) {
-                vm.friendsOnlineCollection = [];
+        else if (flt=='clear') {
+            vm.displayedCollection = friendsSource
+        }
 
-                for (var k = 0; k < $rootScope.friendsCollection.length; k++) {
-                    if ($rootScope.friendsCollection[k].online) {
-                        vm.displayedCollection.push($rootScope.friendsCollection[k]);
-                        vm.friendsOnlineCollection.push($rootScope.friendsCollection[k]);  // for len in html
+        // make filter by group
+        else {
+            var filter_group_name = flt;
+
+            for (var i = 0; i < friendsSource.length; i++) {
+
+                var f_groups = friendsSource[i].groups
+
+                for (var j=0; j<f_groups.length; j++){
+                    if (f_groups[j].assigned && f_groups[j].name == filter_group_name){
+                        vm.displayedCollection.push(friendsSource[i])
                     }
                 }
             }
-            else
-                vm.displayedCollection = [].concat(dataSource)
         }
     };
 

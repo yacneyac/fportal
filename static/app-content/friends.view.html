@@ -39,7 +39,7 @@
     <!--</uib-tab>-->
 
      <uib-tab ng-repeat="tab in vm.friendTabs" heading="{{tab.name}}" active="tab.active" ng-hide="tab.hide"
-              ng-click="vm.setOnline(tab.isOnline); vm.hideNewTab($index)">
+              ng-click="vm.hideNewTab($index)">
         <div ng-include="tab.content"></div>
       </uib-tab>
     </uib-tabset>

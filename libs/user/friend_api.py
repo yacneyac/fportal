@@ -139,3 +139,11 @@ class FriendAPI(object):
         self.db.commit()
 
         return {'success': True}
+
+    def reject_friendship(self):
+        """Reject friendship """
+
+        self.db.delete_by_id(self.params['relation_id'])
+        self.db.commit()
+
+        return {'success': True}

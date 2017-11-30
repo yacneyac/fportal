@@ -3,9 +3,10 @@
     <thead>
       <tr>
         <th colspan="5" style="padding: 0">
+          <!--show for every tab special parameters-->
           <input style="margin-bottom: 5px;" st-search="" class="form-control" placeholder="search ..." type="text"/>
           <!--<span class="friend-cnt" ng-show="tab.sname=='all_frn'">{{friendsCollection.length}} friends</span>-->
-          <span class="friend-cnt" ng-show="tab.sname=='on_frn'">{{vm.friendsOnlineCollection.length}} friends online</span>
+          <!--<span class="friend-cnt" ng-show="tab.sname=='on_frn'">{{vm.friendsOnlineCollection.length}} friends online</span>-->
           <!--<span class="friend-cnt" ng-show="tab.sname=='req_frn'">Requests from friend</span>-->
           <span class="friend-cnt" ng-show="tab.sname=='new_frn'">Friends</span>
         </th>
@@ -81,11 +82,12 @@
 
     <!--filter-->
     <li>
-      <a class="doc" href="" ng-click="vm.setFilter(null, null)">All friends</a>
+      <a class="doc" href="" ng-click="vm.setFilter('clear')">All friends</a>
+      <a class="doc" href="" ng-click="vm.setFilter('online')">Online</a>
     </li>
-    <li ng-repeat="group in friendsGroup">
+    <li ng-repeat="groupName in friendsGroup">
       <a class="doc" href="" ng-class="{ 'selected-flt': $index == vm.selectedIndex }"
-         ng-click="vm.setFilter($index, group)">{{ group }}</a>
+         ng-click="vm.setFilter(groupName)">{{ groupName }}</a>
     </li>
   </ul>
 </div>

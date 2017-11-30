@@ -27,7 +27,6 @@ class FriendHandler(BaseHandler):
         elif self.params.get('action') == 'del':
             self.finish(self.friend.unset_friendship(kwargs['friend_id']))
         elif self.params.get('action') == 'reject':
-            print 'REJECT', kwargs, self.params
-            self.finish({'success': True})
+            self.finish(self.friend.reject_friendship())
         else:
             self.finish(self.friend.set_group(kwargs['friend_id']))
