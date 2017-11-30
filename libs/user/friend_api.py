@@ -53,7 +53,7 @@ class FriendAPI(object):
         sql = "SELECT f.friend_id id, f.id relation_id, concat(u.first_name, ' ', u.second_name) name, " \
                   "u.avatar, u.online "\
                   "FROM friend f inner join user u on u.id = f.friend_id "\
-                  "where f.user_id=%s and f.status=1" % self.user_id
+                  "where f.user_id=%s and f.status=1 order by u.second_name" % self.user_id
         sql_assigned_group = "select fag.id assign_id, fg.id group_id, fag.friend_id from friend_assigned_group fag "\
                              "inner join friend_group fg on fg.id = fag.group_id where fag.user_id =%s" % self.user_id
         sql_group = "select id, name from friend_group"
@@ -123,6 +123,8 @@ class FriendAPI(object):
 
     def unset_friendship(self, friend_id):
         # todo: make cancel status ?
+
+        # todo: remove friend from shared documents
 
         # find and delete relation for friend
         flt = 'user_id=%s and friend_id=%s' % (friend_id, self.user_id)

@@ -8,7 +8,7 @@
           <!--<span class="friend-cnt" ng-show="tab.sname=='all_frn'">{{friendsCollection.length}} friends</span>-->
           <!--<span class="friend-cnt" ng-show="tab.sname=='on_frn'">{{vm.friendsOnlineCollection.length}} friends online</span>-->
           <!--<span class="friend-cnt" ng-show="tab.sname=='req_frn'">Requests from friend</span>-->
-          <span class="friend-cnt" ng-show="tab.sname=='new_frn'">Friends</span>
+          <!--<span class="friend-cnt" ng-show="tab.sname=='new_frn'">Friends</span>-->
         </th>
       </tr>
     </thead>
@@ -73,21 +73,20 @@
 </div>
 <div class="col-md-3 well" ng-hide="tab.sname=='new_frn' || tab.sname=='req_frn'">
   <ul class="nav">
-    <li>
-      <a class="doc" href="" ng-click="vm.getNewFriends()">
-        <i class="glyphicon glyphicon-plus"></i>
-      </a>
-    </li>
-    <li class="nav-divider"></li>
+    <!--<li>-->
+      <!--<a class="doc" href="" ng-click="vm.getNewFriends()">-->
+        <!--<i class="glyphicon glyphicon-plus"></i>-->
+      <!--</a>-->
+    <!--</li>-->
+    <!--<li class="nav-divider"></li>-->
 
     <!--filter-->
     <li>
-      <a class="doc" href="" ng-click="vm.setFilter('clear')">All friends</a>
-      <a class="doc" href="" ng-click="vm.setFilter('online')">Online</a>
+      <a class="doc selected-flt" href="" ng-click="vm.setFilter('clear')">All friends</a>
+      <a class="doc selected-flt" href="" ng-click="vm.setFilter('online')">Online</a>
     </li>
     <li ng-repeat="groupName in friendsGroup">
-      <a class="doc" href="" ng-class="{ 'selected-flt': $index == vm.selectedIndex }"
-         ng-click="vm.setFilter(groupName)">{{ groupName }}</a>
+      <a class="doc selected-flt" href="" ng-click="vm.setFilter(groupName)">{{ groupName }}</a>
     </li>
   </ul>
 </div>

@@ -38,8 +38,7 @@
       <!--searching a new friends-->
     <!--</uib-tab>-->
 
-     <uib-tab ng-repeat="tab in vm.friendTabs" heading="{{tab.name}}" active="tab.active" ng-hide="tab.hide"
-              ng-click="vm.hideNewTab($index)">
+     <uib-tab ng-repeat="tab in vm.friendTabs" heading="{{tab.name}}" ng-click="tab.action()">
         <div ng-include="tab.content"></div>
       </uib-tab>
     </uib-tabset>

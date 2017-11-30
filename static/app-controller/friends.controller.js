@@ -2,26 +2,26 @@ angular.module('app').controller('FriendsController',
     function ($rootScope, UserService, FlashService, $confirm) {
 
     var vm = this;
-
     var content = '/static/app-content/friends.list.html';
 
-    vm.friendTabs = [{'name': 'All Friends', 'sname': 'all_frn', 'content': content},
-                     {'name': 'Requests', 'sname': 'req_frn', 'content': content},
-                     {'name': 'New Friends', 'sname': 'new_frn', 'hide': true, 'content': content}
+    vm.friendTabs = [{'name': 'All Friends', 'sname': 'all_frn', 'content': content, 'action': getAllFriends},
+                     {'name': 'Requests', 'sname': 'req_frn', 'content': content, 'action': getRequestsFriends},
+                     {'name': 'New Friends', 'sname': 'new_frn', 'content': content, 'action': getNewFriends}
     ];
 
     vm.actions = ['Write a message', 'Friend', 'Unfriend'];
     vm.displayedCollection = [];
     $rootScope.friendsCollection = [];
 
-    getFriends();
+    getAllFriends();
+//    getRequestsFriends();
 
-    function getFriends(){
+    function getAllFriends(){
         UserService.getFriends('all').then(function (response) {
 
             if (response.success) {
 
-                generateFriendList(response.friends);
+                generateFriendAvatar(response.friends);
 
                 $rootScope.friendsCollection = response.friends;
                 $rootScope.friendsGroup = response.groups;
@@ -32,24 +32,27 @@ angular.module('app').controller('FriendsController',
         });
     }
 
-    vm.getNewFriends = function(){
-        vm.friendTabs[3].hide=false;
-        vm.friendTabs[3].active=true;
+    function getNewFriends(){
+//        vm.friendTabs[2].hide=false;
+//        vm.friendTabs[2].active=true;
 
         UserService.getFriends('new').then(function (response) {
 
             if (response.success)
-                generateFriendList(response.new_friends);
+                 generateFriendAvatar(response.new_friends);
             else
                 FlashService.Error(response.errorMessage);
         });
     };
+    vm.getNewFriends = getNewFriends
 
-    vm.getRequestsFriends = function(action){
-        UserService.getFriends(action).then(function (response) {
+    function getRequestsFriends(){
+        UserService.getFriends('my_req').then(function (response) {
 
-            if (response.success)
-                generateFriendList(response.r_friends);
+            if (response.success){
+                    generateFriendAvatar(response.r_friends);
+//                    vm.friendTabs[1].hide=false;
+                }
             else
                 FlashService.Error(response.errorMessage);
         });
@@ -88,14 +91,6 @@ angular.module('app').controller('FriendsController',
         }
     };
 
-    vm.hideNewTab = function($index){
-        if ($index!=3)
-            vm.friendTabs[3].hide=true;
-
-        if ($index==2)
-            vm.getRequestsFriends('my_req')
-    };
-
     vm.setGroup = function(assignedGroup, friendId){
         UserService.setFriendGroup(friendId, assignedGroup).then(function (response) {
             if (!response.success)
@@ -106,22 +101,30 @@ angular.module('app').controller('FriendsController',
     };
 
     vm.addDelFriend = function(action, friend){
-
         var data = {action: action,
 //                    initial_id: friend.initial_id,
                     relation_id: friend.relation_id,
                     groups: friend.groups
         };
 
-
-
         UserService.actionFriend(friend.id, data).then(function (response) {
             if (response.success){
 
                 // todo
                 if (action=='add'){
-                    $rootScope.friendsCollection.push(friend)
+
+                    for (var k = 0; k < vm.displayedCollection.length; k++) {
+
+                        if (vm.displayedCollection[k].id == friend.id)
+
+//                            $rootScope.friendsCollection.push(friend)
+
+                            vm.displayedCollection.splice(k, 1);
+                    }
+
+
                 }
+                // remove from displayedCollection
                 else {
                     for (var k = 0; k < $rootScope.friendsCollection.length; k++) {
                         if ($rootScope.friendsCollection[k].id == friend.id) {
@@ -138,7 +141,7 @@ angular.module('app').controller('FriendsController',
     };
 
 
-    function generateFriendList(source){
+    function generateFriendAvatar(source){
         for (var i=0; i<source.length; i++){
             if (!source[i].avatar)
                 source[i].avatarurl = '/static/img/photo.png';
